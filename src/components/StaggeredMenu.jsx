@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
+import StarBorder from './StarBorder.jsx';
 
 const defaultMenuItems = [
   { label: 'Home', ariaLabel: 'Go to home page', link: '/' },
@@ -45,6 +46,7 @@ export default function StaggeredMenu({
   const toggleBtnRef = useRef(null);
   const busyRef = useRef(false);
   const itemEntranceTweenRef = useRef(null);
+  const pendingTargetRef = useRef(null);
   // Full-screen overlay is now the only mode
   const [isModal, setIsModal] = useState(false);
   useEffect(() => { setIsModal(false); }, []);
@@ -124,13 +126,23 @@ export default function StaggeredMenu({
     return tl;
   }, []);
 
-  const playOpen = useCallback(() => {
+  const playOpen = useCallback((onDone) => {
     if (busyRef.current) return;
     busyRef.current = true;
     const tl = buildOpenTimeline();
     if (tl) {
       tl.eventCallback('onComplete', () => {
         busyRef.current = false;
+        onDone && onDone();
+        // Process any pending toggle intent
+        if (pendingTargetRef.current !== null && pendingTargetRef.current !== openRef.current) {
+          const desired = pendingTargetRef.current;
+          pendingTargetRef.current = null;
+          // Defer to next tick to avoid re-entrancy in GSAP callbacks
+          setTimeout(() => {
+            requestToggle(desired);
+          }, 0);
+        }
       });
       tl.play(0);
     } else {
@@ -192,6 +204,14 @@ export default function StaggeredMenu({
         if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 0 });
         busyRef.current = false;
         onDone && onDone();
+        // Process any pending toggle intent
+        if (pendingTargetRef.current !== null && pendingTargetRef.current !== openRef.current) {
+          const desired = pendingTargetRef.current;
+          pendingTargetRef.current = null;
+          setTimeout(() => {
+            requestToggle(desired);
+          }, 0);
+        }
       });
     closeTweenRef.current = tl;
   }, [position]);
@@ -277,21 +297,21 @@ export default function StaggeredMenu({
     });
   }, []);
 
-  const toggleMenu = useCallback(() => {
-    const target = !openRef.current;
-    // We'll set open state immediately only when opening; for closing, delay until animation completes
-    if (target) openRef.current = true; else openRef.current = false;
-    if (target) setOpen(true);
-    // Lock/unlock body scroll
+  const requestToggle = useCallback((target) => {
+    // Queue request if an animation is running
+    if (busyRef.current) {
+      pendingTargetRef.current = target;
+      return;
+    }
+    if (target === openRef.current) return; // nothing to do
     if (target) {
+      openRef.current = true;
+      setOpen(true);
       try {
         const body = document.body;
         body.style.overflow = 'hidden';
         body.style.touchAction = 'none';
       } catch {}
-    }
-    if (target) {
-      // Prepare initial hidden state; timeline will fade/scale in cleanly
       if (panelRef.current) {
         gsap.set(panelRef.current, { xPercent: 0, autoAlpha: 0, scale: 0.96 });
         const itemEls = Array.from(panelRef.current.querySelectorAll('.sm-panel-itemLabel'));
@@ -302,9 +322,9 @@ export default function StaggeredMenu({
       onMenuOpen?.();
       playOpen();
     } else {
+      openRef.current = false;
       onMenuClose?.();
       playClose(() => {
-        // Now actually close in state and restore scroll
         setOpen(false);
         try {
           const body = document.body;
@@ -312,20 +332,33 @@ export default function StaggeredMenu({
           body.style.touchAction = '';
         } catch {}
       });
+      setTimeout(() => {
+        try {
+          const body = document.body;
+          body.style.overflow = '';
+          body.style.touchAction = '';
+        } catch {}
+      }, 500);
     }
     animateIcon(target);
     animateColor(target);
     animateText(target);
   }, [playOpen, playClose, animateIcon, animateColor, animateText, onMenuOpen, onMenuClose]);
 
+  const toggleMenu = useCallback(() => {
+    const target = !openRef.current;
+    requestToggle(target);
+  }, [requestToggle]);
+
   const handleItemClick = useCallback((e, link) => {
     e.preventDefault();
-    // Navigate and then close the menu
-    navigate(link);
+    // Close first to avoid any races, then navigate
     if (openRef.current) {
-      toggleMenu();
+      requestToggle(false);
     }
-  }, [navigate, toggleMenu]);
+    // Slight defer to allow close to kick off cleanly
+    setTimeout(() => navigate(link), 0);
+  }, [navigate, requestToggle]);
 
   return (
     <div className={`sm-scope z-40`}>
@@ -372,43 +405,50 @@ export default function StaggeredMenu({
               />
             )}
           </div>
-          <button
+          <StarBorder
+            as="button"
             ref={toggleBtnRef}
-            className="sm-toggle relative inline-flex items-center gap-[0.5rem] bg-[rgba(10,12,18,0.5)] border border-[rgba(107,193,255,0.25)] cursor-pointer text-[#e9e9ef] font-semibold leading-none overflow-visible pointer-events-auto rounded-[12px] px-3.5 py-2.5 backdrop-blur-[10px]"
+            radius="pill"
+            thickness={10}
+            color="#aee4ff"
+            speed="3s"
+            className="pointer-events-auto bg-[rgba(10,12,18,0.5)] backdrop-blur-[10px]"
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
             aria-controls="staggered-menu-panel"
             onClick={toggleMenu}
             type="button"
           >
-            <span
-              ref={textWrapRef}
-              className="sm-toggle-textWrap relative inline-block h-[1.1em] overflow-hidden whitespace-nowrap w-[var(--sm-toggle-width,auto)] min-w-[var(--sm-toggle-width,auto)]"
-              aria-hidden="true"
-            >
-              <span ref={textInnerRef} className="sm-toggle-textInner flex flex-col leading-none">
-                {textLines.map((l, i) => (
-                  <span className="sm-toggle-line block h-[1.1em] leading-none" key={i}>
-                    {l}
-                  </span>
-                ))}
+            <span className="inline-flex items-center gap-[0.5rem] text-[#e9e9ef] font-semibold leading-none">
+              <span
+                ref={textWrapRef}
+                className="sm-toggle-textWrap relative inline-block h-[1.1em] overflow-hidden whitespace-nowrap w-[var(--sm-toggle-width,auto)] min-w-[var(--sm-toggle-width,auto)]"
+                aria-hidden="true"
+              >
+                <span ref={textInnerRef} className="sm-toggle-textInner flex flex-col leading-none">
+                  {textLines.map((l, i) => (
+                    <span className="sm-toggle-line block h-[1.1em] leading-none" key={i}>
+                      {l}
+                    </span>
+                  ))}
+                </span>
+              </span>
+              <span
+                ref={iconRef}
+                className="sm-icon relative w-[16px] h-[16px] shrink-0 inline-flex items-center justify-center [will-change:transform]"
+                aria-hidden="true"
+              >
+                <span
+                  ref={plusHRef}
+                  className="sm-icon-line absolute left-1/2 top-1/2 w-full h-[2px] bg-current rounded-[2px] -translate-x-1/2 -translate-y-1/2 [will-change:transform]"
+                />
+                <span
+                  ref={plusVRef}
+                  className="sm-icon-line sm-icon-line-v absolute left-1/2 top-1/2 w-full h-[2px] bg-current rounded-[2px] -translate-x-1/2 -translate-y-1/2 [will-change:transform]"
+                />
               </span>
             </span>
-            <span
-              ref={iconRef}
-              className="sm-icon relative w-[16px] h-[16px] shrink-0 inline-flex items-center justify-center [will-change:transform]"
-              aria-hidden="true"
-            >
-              <span
-                ref={plusHRef}
-                className="sm-icon-line absolute left-1/2 top-1/2 w-full h-[2px] bg-current rounded-[2px] -translate-x-1/2 -translate-y-1/2 [will-change:transform]"
-              />
-              <span
-                ref={plusVRef}
-                className="sm-icon-line sm-icon-line-v absolute left-1/2 top-1/2 w-full h-[2px] bg-current rounded-[2px] -translate-x-1/2 -translate-y-1/2 [will-change:transform]"
-              />
-            </span>
-          </button>
+          </StarBorder>
         </header>
         <aside
           id="staggered-menu-panel"
@@ -456,6 +496,10 @@ export default function StaggeredMenu({
               )}
             </ul>
           </div>
+          {/* Bottom-left footer info */}
+          <div className="sm-panel-footer" aria-label="Institution address">
+            Nitte Institute Of Professional Education NH-75, Next to First Neuro Hospital, Kodakkal, Mangaluru – 575007. Karnataka, India.
+          </div>
         </aside>
       </div>
       {/* Inline styles for the menu, can be moved to a CSS file if desired */}
@@ -476,8 +520,9 @@ export default function StaggeredMenu({
 .sm-scope .sm-icon-line { position: absolute; left: 50%; top: 50%; width: 100%; height: 2px; background: currentColor; border-radius: 2px; transform: translate(-50%, -50%); will-change: transform; }
 .sm-scope .sm-line { display: none !important; }
 .sm-scope .staggered-menu-panel { position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(10,12,18,0.88); color: #fff; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; padding: 6em 1.25em calc(1.25em + env(safe-area-inset-bottom, 16px)) 1.25em; overflow-y: auto; z-index: 80; will-change: transform; }
-.sm-scope .staggered-menu-panel::-webkit-scrollbar { width: 8px; }
-.sm-scope .staggered-menu-panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 8px; }
+.sm-scope .staggered-menu-panel::-webkit-scrollbar { width: 0 !important; height: 0 !important; background: transparent !important; }
+.sm-scope .staggered-menu-panel::-webkit-scrollbar-thumb { background: transparent !important; border: none !important; }
+.sm-scope .staggered-menu-panel { scrollbar-width: none; -ms-overflow-style: none; }
 .sm-scope [data-position='right'] .staggered-menu-panel { transform: translateX(100%); }
 .sm-scope [data-position='left'] .staggered-menu-panel { transform: translateX(-100%); }
 .sm-scope [data-open] .staggered-menu-panel { transform: translateX(0) !important; }
@@ -495,8 +540,18 @@ export default function StaggeredMenu({
 .sm-scope .sm-panel-item:hover { color: var(--sm-accent, #5227FF); }
 .sm-scope .sm-panel-list[data-numbering] { counter-reset: smItem; }
 .sm-scope .sm-panel-list[data-numbering] .sm-panel-item::after { counter-increment: smItem; content: counter(smItem, decimal-leading-zero); position: absolute; top: 0.1em; right: 3.2em; font-size: 18px; font-weight: 400; color: var(--sm-accent, #5227FF); letter-spacing: 0; pointer-events: none; user-select: none; opacity: var(--sm-num-opacity, 0); }
+/* Footer inside panel */
+.sm-scope .sm-panel-footer { position: sticky; bottom: calc(3rem + env(safe-area-inset-bottom, 0px)); left: 0; text-align: left; max-width: 46ch; font-size: 16px; line-height: 1.55; color: #ffffff; padding-top: 0.9rem; margin-top: auto; }
+@media (max-width: 640px) { .sm-scope .sm-panel-footer { font-size: 15px; max-width: 34ch; bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); } }
 @media (max-width: 1024px) { .sm-scope .staggered-menu-wrapper[data-open] .sm-logo-img { filter: invert(100%); } .sm-scope .sm-panel-list { gap: 1rem; } }
-@media (max-width: 640px) { .sm-scope .staggered-menu-wrapper[data-open] .sm-logo-img { filter: invert(100%); } .sm-scope .sm-panel-item { font-size: clamp(1.6rem, 8vw, 2.4rem); } .sm-scope .sm-panel-list { gap: 1.1rem; padding-bottom: 1.25rem; } }
+@media (max-width: 640px) {
+  /* Move menu button to bottom center on mobile */
+  .sm-scope .staggered-menu-header { top: auto; bottom: 0; left: 0; right: 0; justify-content: center; padding: 0.75rem 1rem calc(0.9rem + env(safe-area-inset-bottom, 12px)); }
+  .sm-scope .sm-logo { display: none; }
+  .sm-scope .staggered-menu-wrapper[data-open] .sm-logo-img { filter: invert(100%); }
+  .sm-scope .sm-panel-item { font-size: clamp(1.6rem, 8vw, 2.4rem); }
+  .sm-scope .sm-panel-list { gap: 1.1rem; padding-bottom: 1.25rem; }
+}
 @supports (top: env(safe-area-inset-top)) { .sm-scope .staggered-menu-header { padding-top: calc(1rem + env(safe-area-inset-top)); padding-right: calc(1.25rem + env(safe-area-inset-right)); } }
 
 /* Backdrop can be reused if desired, but not needed for full-screen slide */

@@ -10,6 +10,15 @@
 
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; }
+/* Smooth scroll and prevent overscroll bounce/extra blank space */
+html { scroll-behavior: smooth; overscroll-behavior-y: none; overscroll-behavior-x: none; }
+body { overscroll-behavior-y: none; overscroll-behavior-x: none; overflow-x: hidden; }
+
+/* Hide scrollbars globally but keep content scrollable */
+html, body { -ms-overflow-style: none; /* IE and Edge */ }
+html, body, * { scrollbar-width: none; /* Firefox */ }
+*::-webkit-scrollbar { width: 0 !important; height: 0 !important; background: transparent !important; }
+*::-webkit-scrollbar-thumb { background: transparent !important; border: none !important; }
 body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
@@ -22,7 +31,8 @@ body {
 .app-root {
   position: relative;
   min-height: 100%;
-  overflow: clip;
+  /* Clip any accidental overflow from fixed/absolute layers */
+  overflow-x: hidden;
 }
 
 /* Full-bleed galaxy canvas holder */
@@ -90,17 +100,19 @@ body {
   z-index: 1;
   display: grid;
   place-items: center;
+  /* Use dynamic viewport unit to avoid extra space on mobile when the URL bar shows/hides */
   min-height: 100vh;
-  padding: 24px 14px 48px;
+  min-height: 100svh;
+  padding: 24px 14px 0;
 }
-.hero-min { padding-top: 18px; padding-bottom: 28px; }
+.hero-min { padding-top: 18px; padding-bottom: 0; }
 
 /* Absolute background inside hero to guarantee visibility */
-.galaxy-bg { position: absolute; inset: 0; z-index: 0; }
+.galaxy-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
 .galaxy-bg > div, .galaxy-bg canvas { width: 100% !important; height: 100% !important; display: block; }
 
 /* Overlay content layered above */
-.overlay { position: relative; z-index: 1; text-align: center; }
+.overlay { position: relative; z-index: 1; text-align: center; padding-bottom: 48px; }
 .hero-card { text-align: center; padding: 12px; }
 .eyebrow {
   display: inline-block;
@@ -176,7 +188,7 @@ body {
   .links.desktop { display: flex; gap: clamp(12px, 4vw, 42px); }
   .hamburger { display: none; }
   .links.mobile { display: none; }
-  .hero { min-height: 100vh; padding: 48px 24px 72px; }
+  .hero { min-height: 100vh; min-height: 100svh; padding: 48px 24px 0; }
   .headline { font-size: clamp(36px, 6vw, 64px); }
   .subhead { font-size: clamp(16px, 2.2vw, 20px); }
 }
