@@ -1,10 +1,16 @@
-# ERIDANUS 2025 — Registration (Home only)
+# ERIDANUS 2025 — Dark Galaxy SPA
 
-Dark galaxy–themed React + Vite site. This initial cut implements:
+React + Vite single-page app with an OGL galaxy background, animated intro, and a full-screen overlay menu. Home shows event details and animated stats.
 
-- Galaxy shader background (OGL)
-- Sticky navbar with links: Home, About, Program, Events, Venue, Resources (placeholders)
-- Home hero with CTA buttons (placeholders)
+## Features
+
+- OGL galaxy background across pages
+- One-time intro overlay animation (session-gated)
+- Full-screen, centered overlay menu with robust GSAP open/close animations
+- Minimal, bottom-center Menu toggle (portal-based) for mobile and desktop
+- React Router pages: Home, About, Program, Events, Venue, Resources
+- Animated CountUp stats on Home (Motion)
+- Firebase Hosting config in repo
 
 ## Run locally
 
@@ -16,20 +22,35 @@ npm install
 npm run dev
 ```
 
-Open the printed local URL (usually http://localhost:5173).
+Open the local URL (usually http://localhost:5173).
+
+Optional: Use VS Code launch config “Vite: dev server” to start and attach Chrome.
 
 ## Structure
 
-- `src/components/Galaxy.jsx` — background shader component
-- `src/components/Navbar.jsx` — top navigation
-- `src/pages/Home.jsx` — home page content
-- `src/App.jsx` — site composition
+- `src/components/Galaxy.jsx` — galaxy background
+- `src/components/IntroOverlay.jsx` — intro animation overlay
+- `src/components/StaggeredMenu.jsx` — overlay menu + toggle
+- `src/components/CountUp.jsx` — number animation (Motion)
+- `src/pages/*` — route pages
+- `src/App.jsx` — routes and global composition
 - `src/main.jsx` — React entry
-- `src/styles.css` — global styles / theme
+- `src/styles.css` — global styles
 
-## Next steps
+## Tasks and Launch
 
-- Wire registration form and backend
-- Build About, Program, Events, Venue, Resources pages
-- Add routing (React Router)
-- Accessibility review and keyboard nav
+- VS Code tasks: vite:dev, vite:build, vite:preview
+- VS Code launch: Vite: dev server (starts task and opens Chrome)
+
+## Deploy (Firebase Hosting)
+
+Build and deploy:
+
+```bash
+npm run firebase:deploy
+```
+
+## Notes
+
+- The menu overlay uses fixed positioning and GSAP-controlled fade/scale to always open centered and cover the viewport regardless of scroll.
+- The Menu button is rendered via a portal and fixed at the bottom center on all viewports. Safe-area insets are respected.

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { gsap } from 'gsap';
-import StarBorder from './StarBorder.jsx';
 
 const defaultMenuItems = [
   { label: 'Home', ariaLabel: 'Go to home page', link: '/' },
@@ -37,7 +37,7 @@ export default function StaggeredMenu({
   const iconRef = useRef(null);
   const textInnerRef = useRef(null);
   const textWrapRef = useRef(null);
-  const [textLines, setTextLines] = useState(['Menu', 'Close']);
+  const [textLines, setTextLines] = useState(['Menu']);
   const openTlRef = useRef(null);
   const closeTweenRef = useRef(null);
   const spinTweenRef = useRef(null);
@@ -50,6 +50,8 @@ export default function StaggeredMenu({
   // Full-screen overlay is now the only mode
   const [isModal, setIsModal] = useState(false);
   useEffect(() => { setIsModal(false); }, []);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   useLayoutEffect(() => {
     const ctx = gsap.context(() => {
@@ -80,6 +82,7 @@ export default function StaggeredMenu({
   const buildOpenTimeline = useCallback(() => {
     const panel = panelRef.current;
     if (!panel) return null;
+    const anim = panel.querySelector('.sm-panel-anim');
     openTlRef.current?.kill();
     if (closeTweenRef.current) {
       closeTweenRef.current.kill();
@@ -88,14 +91,14 @@ export default function StaggeredMenu({
     itemEntranceTweenRef.current?.kill();
     const itemEls = Array.from(panel.querySelectorAll('.sm-panel-itemLabel'));
     const numberEls = Array.from(panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
-    // Prepare initial states for center fade-in
-    gsap.set(panel, { xPercent: 0, scale: 0.96, autoAlpha: 0, transformOrigin: '50% 50%' });
+  // Prepare initial states for center fade-in (animate inner content, not the fixed backdrop)
+  if (anim) gsap.set(anim, { xPercent: 0, scale: 0.96, autoAlpha: 0, transformOrigin: '50% 50%' });
   if (itemEls.length) gsap.set(itemEls, { autoAlpha: 0, y: 10, yPercent: 0, scale: 0.98, rotate: 0, transformOrigin: '50% 50%' });
     if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 0 });
-    const tl = gsap.timeline({ paused: true });
+  const tl = gsap.timeline({ paused: true });
     // Panel fades/scales in from center
   const panelDuration = 0.45;
-    tl.to(panel, { autoAlpha: 1, scale: 1, duration: panelDuration, ease: 'power2.out' }, 0);
+  if (anim) tl.to(anim, { autoAlpha: 1, scale: 1, duration: panelDuration, ease: 'power2.out' }, 0);
     // Aesthetic radial burst from center
     const vfx = panel.querySelector('.sm-panel-vfx');
     if (vfx) {
@@ -131,7 +134,23 @@ export default function StaggeredMenu({
     busyRef.current = true;
     const tl = buildOpenTimeline();
     if (tl) {
+      tl.eventCallback('onStart', () => {
+        try {
+          const panel = panelRef.current;
+          if (panel) {
+            panel.scrollTop = 0;
+            panel.scrollTo?.(0, 0);
+          }
+        } catch {}
+      });
       tl.eventCallback('onComplete', () => {
+        try {
+          const panel = panelRef.current;
+          if (panel) {
+            panel.scrollTop = 0;
+            panel.scrollTo?.(0, 0);
+          }
+        } catch {}
         busyRef.current = false;
         onDone && onDone();
         // Process any pending toggle intent
@@ -149,11 +168,14 @@ export default function StaggeredMenu({
       // Fallback: ensure items are visible if timeline couldn't be built
       const panel = panelRef.current;
       if (panel) {
+        const anim = panel.querySelector('.sm-panel-anim');
         const itemEls = Array.from(panel.querySelectorAll('.sm-panel-itemLabel'));
         const numberEls = Array.from(panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
         if (itemEls.length) gsap.set(itemEls, { autoAlpha: 1, y: 0, scale: 1, rotate: 0 });
         if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 1 });
-        gsap.set(panel, { xPercent: 0, autoAlpha: 1, scale: 1 });
+        // Backdrop is fixed full-screen; make sure inner content is visible
+        gsap.set(panel, { xPercent: 0 });
+        if (anim) gsap.set(anim, { autoAlpha: 1, scale: 1 });
         const layers = preLayerElsRef.current;
         if (layers && layers.length) gsap.set(layers, { xPercent: 0 });
       }
@@ -173,7 +195,8 @@ export default function StaggeredMenu({
     closeTweenRef.current?.kill();
     const itemEls = Array.from(panel.querySelectorAll('.sm-panel-itemLabel'));
     const numberEls = Array.from(panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
-    const vfx = panel.querySelector('.sm-panel-vfx');
+  const vfx = panel.querySelector('.sm-panel-vfx');
+  const anim = panel.querySelector('.sm-panel-anim');
     const tl = gsap.timeline({ defaults: { overwrite: 'auto' } });
     // Items fade/scale out with reverse stagger
     if (itemEls.length) {
@@ -196,10 +219,11 @@ export default function StaggeredMenu({
         .to(vfx, { autoAlpha: 0, duration: 0.45, ease: 'power2.in' }, 0.12);
     }
     // Panel fades/scales out overlapping the item exit
-    tl.to(panel, { autoAlpha: 0, scale: 0.96, duration: 0.45, ease: 'power2.in' }, 0.08)
+    if (anim) tl.to(anim, { autoAlpha: 0, scale: 0.96, duration: 0.45, ease: 'power2.in' }, 0.08)
       .add(() => {
         // Reset for next open
-        gsap.set(panel, { xPercent: offscreen, autoAlpha: 1, scale: 1 });
+        gsap.set(panel, { xPercent: offscreen });
+        if (anim) gsap.set(anim, { xPercent: 0, autoAlpha: 1, scale: 1 });
         if (itemEls.length) gsap.set(itemEls, { autoAlpha: 0, yPercent: 0, y: 10, scale: 0.98, rotate: 0 });
         if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 0 });
         busyRef.current = false;
@@ -275,25 +299,35 @@ export default function StaggeredMenu({
     const inner = textInnerRef.current;
     if (!inner) return;
     textCycleAnimRef.current?.kill();
-    const currentLabel = opening ? 'Menu' : 'Close';
     const targetLabel = opening ? 'Close' : 'Menu';
-    const cycles = 3;
-    const seq = [currentLabel];
-    let last = currentLabel;
-    for (let i = 0; i < cycles; i++) {
-      last = last === 'Menu' ? 'Close' : 'Menu';
-      seq.push(last);
-    }
-    if (last !== targetLabel) seq.push(targetLabel);
-    seq.push(targetLabel);
-    setTextLines(seq);
-    gsap.set(inner, { yPercent: 0 });
-    const lineCount = seq.length;
-    const finalShift = ((lineCount - 1) / lineCount) * 100;
-    textCycleAnimRef.current = gsap.to(inner, {
-      yPercent: -finalShift,
-      duration: 0.5 + lineCount * 0.07,
-      ease: 'power4.out'
+    // Swap to a single label and do a small up-fade
+    setTextLines([targetLabel]);
+    gsap.fromTo(inner, { y: 6, autoAlpha: 0 }, { y: 0, autoAlpha: 1, duration: 0.25, ease: 'power2.out' });
+  }, []);
+
+  // Smoothly scroll the page to the top, resolve when at top or after maxWait ms
+  const scrollPageToTop = useCallback((smooth = true, maxWait = 900) => {
+    return new Promise(resolve => {
+      try {
+        const docEl = document.documentElement || document.body;
+        const current = Math.max(window.scrollY || 0, docEl.scrollTop || 0);
+        if (current <= 0) return resolve();
+        const start = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        if (smooth && docEl && 'scrollBehavior' in docEl.style) {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          window.scrollTo(0, 0);
+        }
+        const check = () => {
+          const y = Math.max(window.scrollY || 0, (document.documentElement?.scrollTop || 0));
+          const elapsed = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - start;
+          if (y <= 0 || elapsed >= maxWait) return resolve();
+          requestAnimationFrame(check);
+        };
+        requestAnimationFrame(check);
+      } catch {
+        resolve();
+      }
     });
   }, []);
 
@@ -305,22 +339,37 @@ export default function StaggeredMenu({
     }
     if (target === openRef.current) return; // nothing to do
     if (target) {
-      openRef.current = true;
-      setOpen(true);
-      try {
-        const body = document.body;
-        body.style.overflow = 'hidden';
-        body.style.touchAction = 'none';
-      } catch {}
-      if (panelRef.current) {
-        gsap.set(panelRef.current, { xPercent: 0, autoAlpha: 0, scale: 0.96 });
-        const itemEls = Array.from(panelRef.current.querySelectorAll('.sm-panel-itemLabel'));
-        if (itemEls.length) gsap.set(itemEls, { autoAlpha: 0, yPercent: 0, y: 10, scale: 0.98, rotate: 0 });
-        const numberEls = Array.from(panelRef.current.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
-        if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 0 });
-      }
-      onMenuOpen?.();
-      playOpen();
+      // First, scroll page to top; then open the overlay
+      scrollPageToTop(true, 900).then(() => {
+        openRef.current = true;
+        setOpen(true);
+        try {
+          const body = document.body;
+          body.style.overflow = 'hidden';
+          body.style.touchAction = 'none';
+        } catch {}
+        const panel = panelRef.current;
+        if (panel) {
+          try { panel.focus({ preventScroll: true }); } catch {}
+          panel.scrollTop = 0;
+          panel.scrollTo?.(0, 0);
+          // Keep backdrop visible; prep inner anim content
+          gsap.set(panel, { xPercent: 0 });
+          const anim = panel.querySelector('.sm-panel-anim');
+          if (anim) gsap.set(anim, { autoAlpha: 0, scale: 0.96, transformOrigin: '50% 50%' });
+          const itemEls = Array.from(panel.querySelectorAll('.sm-panel-itemLabel'));
+          if (itemEls.length) gsap.set(itemEls, { autoAlpha: 0, yPercent: 0, y: 10, scale: 0.98, rotate: 0 });
+          const numberEls = Array.from(panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
+          if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 0 });
+        }
+        onMenuOpen?.();
+        playOpen();
+        // Trigger open-state UI animations now that the open has begun
+        animateIcon(true);
+        animateColor(true);
+        animateText(true);
+      });
+      return;
     } else {
       openRef.current = false;
       onMenuClose?.();
@@ -389,81 +438,87 @@ export default function StaggeredMenu({
             ));
           })()}
         </div>
-        <header
-          className="staggered-menu-header fixed top-0 left-0 w-full flex items-center justify-between p-[2em] bg-transparent pointer-events-none z-20"
-          aria-label="Main navigation header"
-        >
-          <div className="sm-logo flex items-center select-none pointer-events-auto" aria-label="Logo">
-            {logoUrl && (
-              <img
-                src={logoUrl}
-                alt="Logo"
-                className="sm-logo-img block h-8 w-auto object-contain"
-                draggable={false}
-                width={110}
-                height={24}
-              />
-            )}
-          </div>
-          <StarBorder
-            as="button"
-            ref={toggleBtnRef}
-            radius="pill"
-            thickness={10}
-            color="#aee4ff"
-            speed="3s"
-            className="pointer-events-auto bg-[rgba(10,12,18,0.5)] backdrop-blur-[10px]"
-            aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
-            aria-controls="staggered-menu-panel"
-            onClick={toggleMenu}
-            type="button"
+        {mounted ? createPortal(
+          <header
+            className="staggered-menu-header fixed bg-transparent"
+            style={{ pointerEvents: 'none' }}
+            aria-label="Main navigation header"
           >
-            <span className="inline-flex items-center gap-[0.5rem] text-[#e9e9ef] font-semibold leading-none">
-              <span
-                ref={textWrapRef}
-                className="sm-toggle-textWrap relative inline-block h-[1.1em] overflow-hidden whitespace-nowrap w-[var(--sm-toggle-width,auto)] min-w-[var(--sm-toggle-width,auto)]"
-                aria-hidden="true"
-              >
-                <span ref={textInnerRef} className="sm-toggle-textInner flex flex-col leading-none">
-                  {textLines.map((l, i) => (
-                    <span className="sm-toggle-line block h-[1.1em] leading-none" key={i}>
-                      {l}
-                    </span>
-                  ))}
+            <div className="sm-logo flex items-center select-none pointer-events-auto" aria-label="Logo">
+              {logoUrl && (
+                <img
+                  src={logoUrl}
+                  alt="Logo"
+                  className="sm-logo-img block h-8 w-auto object-contain"
+                  draggable={false}
+                  width={110}
+                  height={24}
+                />
+              )}
+            </div>
+            <button
+              ref={toggleBtnRef}
+              className="menu-toggle-btn pointer-events-auto"
+              style={{ pointerEvents: 'auto', cursor: 'pointer', position: 'relative', zIndex: 2000 }}
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+              aria-controls="staggered-menu-panel"
+              onClick={toggleMenu}
+              type="button"
+            >
+              {/* Animated background layers */}
+              <div className="btn-bg-layer btn-bg-primary"></div>
+              <div className="btn-bg-layer btn-bg-glow"></div>
+              <div className="btn-border-shimmer"></div>
+              
+              {/* Button content */}
+              <span className="btn-content inline-flex items-center gap-[0.7rem] text-[#e9e9ef] font-semibold leading-none">
+                <span
+                  ref={textWrapRef}
+                  className="sm-toggle-textWrap relative inline-block h-[1.1em] overflow-hidden whitespace-nowrap w-[var(--sm-toggle-width,auto)] min-w-[var(--sm-toggle-width,auto)]"
+                  aria-hidden="true"
+                >
+                  <span ref={textInnerRef} className="sm-toggle-textInner flex flex-col leading-none">
+                    {textLines.map((l, i) => (
+                      <span className="sm-toggle-line block h-[1.1em] leading-none tracking-wide" key={i}>
+                        {l}
+                      </span>
+                    ))}
+                  </span>
+                </span>
+                <span
+                  ref={iconRef}
+                  className="sm-icon relative w-[18px] h-[18px] shrink-0 inline-flex items-center justify-center [will-change:transform]"
+                  aria-hidden="true"
+                >
+                  <span
+                    ref={plusHRef}
+                    className="sm-icon-line absolute left-1/2 top-1/2 w-full h-[2.5px] bg-current rounded-full -translate-x-1/2 -translate-y-1/2 [will-change:transform]"
+                  />
+                  <span
+                    ref={plusVRef}
+                    className="sm-icon-line sm-icon-line-v absolute left-1/2 top-1/2 w-full h-[2.5px] bg-current rounded-full -translate-x-1/2 -translate-y-1/2 [will-change:transform]"
+                  />
                 </span>
               </span>
-              <span
-                ref={iconRef}
-                className="sm-icon relative w-[16px] h-[16px] shrink-0 inline-flex items-center justify-center [will-change:transform]"
-                aria-hidden="true"
-              >
-                <span
-                  ref={plusHRef}
-                  className="sm-icon-line absolute left-1/2 top-1/2 w-full h-[2px] bg-current rounded-[2px] -translate-x-1/2 -translate-y-1/2 [will-change:transform]"
-                />
-                <span
-                  ref={plusVRef}
-                  className="sm-icon-line sm-icon-line-v absolute left-1/2 top-1/2 w-full h-[2px] bg-current rounded-[2px] -translate-x-1/2 -translate-y-1/2 [will-change:transform]"
-                />
-              </span>
-            </span>
-          </StarBorder>
-        </header>
+            </button>
+          </header>, document.body) : null}
         <aside
           id="staggered-menu-panel"
           ref={panelRef}
-          className="staggered-menu-panel absolute inset-0 h-full bg-[rgba(10,12,18,0.88)] text-white flex flex-col p-[4.5em_1.25em_1.25em_1.25em] overflow-y-auto z-10 backdrop-blur-[10px]"
-          style={{ WebkitBackdropFilter: 'blur(10px)' }}
+          className="staggered-menu-panel bg-[rgba(10,12,18,0.88)] text-white flex flex-col p-[4.5em_1.25em_1.25em_1.25em] overflow-y-auto z-10 backdrop-blur-[10px]"
+          style={{ WebkitBackdropFilter: 'blur(12px)' }}
           aria-hidden={!open}
           role="dialog"
           aria-modal="true"
+          tabIndex={-1}
         >
-          {/* Center VFX burst element */}
-          <div className="sm-panel-vfx pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vmin] h-[60vmin] rounded-full opacity-0"
-               style={{ background: 'radial-gradient(closest-side, rgba(118,143,255,0.25), rgba(118,143,255,0) 65%)' }}
-               aria-hidden="true" />
-          <div className="sm-panel-inner flex-1 flex flex-col gap-5">
+          <div className="sm-panel-anim relative min-h-full">
+            {/* Center VFX burst element */}
+            <div className="sm-panel-vfx pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vmin] h-[60vmin] rounded-full opacity-0"
+                 style={{ background: 'radial-gradient(closest-side, rgba(118,143,255,0.25), rgba(118,143,255,0) 65%)' }}
+                 aria-hidden="true" />
+            <div className="sm-panel-inner flex-1 flex flex-col gap-5">
             <ul
               className="sm-panel-list list-none m-0 p-0 flex flex-col gap-2 text-white"
               role="list"
@@ -495,37 +550,170 @@ export default function StaggeredMenu({
                 </li>
               )}
             </ul>
-          </div>
-          {/* Bottom-left footer info */}
-          <div className="sm-panel-footer" aria-label="Institution address">
-            Nitte Institute Of Professional Education NH-75, Next to First Neuro Hospital, Kodakkal, Mangaluru – 575007. Karnataka, India.
+            </div>
+            {/* Bottom-left footer info */}
+            <div className="sm-panel-footer" aria-label="Institution address">
+              Nitte Institute Of Professional Education NH-75, Next to First Neuro Hospital, Kodakkal, Mangaluru – 575007. Karnataka, India.
+            </div>
           </div>
         </aside>
       </div>
       {/* Inline styles for the menu, can be moved to a CSS file if desired */}
   <style>{`
 .sm-scope .staggered-menu-wrapper { position: relative; width: 100%; height: 100%; z-index: 40; }
-.sm-scope .staggered-menu-header { position: fixed; top: 0; left: 0; width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; background: transparent; pointer-events: none; z-index: 100; }
+.sm-scope .staggered-menu-header { position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 50%; right: auto; top: auto; transform: translateX(-50%); width: auto; display: flex; align-items: center; justify-content: center; padding: 0; background: transparent; pointer-events: none; z-index: 1000; }
+.staggered-menu-header { position: fixed; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); left: 50%; right: auto; top: auto; transform: translateX(-50%); width: auto; display: flex; align-items: center; justify-content: center; padding: 0; background: transparent; pointer-events: none; z-index: 1000; animation: menuButtonFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s both; }
 .sm-scope .staggered-menu-header > * { pointer-events: auto; }
 .sm-scope .sm-logo { display: flex; align-items: center; user-select: none; }
 .sm-scope .sm-logo-img { display: block; height: 32px; width: auto; object-fit: contain; }
 .sm-scope .sm-toggle { position: relative; display: inline-flex; align-items: center; gap: 0.6rem; background: rgba(10,12,18,0.5); border: 1px solid rgba(107,193,255,0.25); cursor: pointer; color: #e9e9ef; font-weight: 700; line-height: 1; overflow: visible; border-radius: 12px; padding: 12px 16px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 6px 24px rgba(0,0,0,0.25); font-size: clamp(0.95rem, 1.2vw, 1.1rem); }
 .sm-scope .sm-toggle:focus-visible { outline: 2px solid #ffffffaa; outline-offset: 4px; border-radius: 4px; }
 .sm-scope .sm-line:last-of-type { margin-top: 6px; }
-.sm-scope .sm-toggle-textWrap { position: relative; margin-right: 0.5em; display: inline-block; height: 1em; overflow: hidden; white-space: nowrap; width: var(--sm-toggle-width, auto); min-width: var(--sm-toggle-width, auto); }
-.sm-scope .sm-toggle-textInner { display: flex; flex-direction: column; line-height: 1; }
-.sm-scope .sm-toggle-line { display: block; height: 1em; line-height: 1; }
-.sm-scope .sm-icon { position: relative; width: 18px; height: 18px; flex: 0 0 18px; display: inline-flex; align-items: center; justify-content: center; will-change: transform; }
-.sm-scope .sm-panel-itemWrap { position: relative; overflow: hidden; line-height: 1; }
-.sm-scope .sm-icon-line { position: absolute; left: 50%; top: 50%; width: 100%; height: 2px; background: currentColor; border-radius: 2px; transform: translate(-50%, -50%); will-change: transform; }
-.sm-scope .sm-line { display: none !important; }
-.sm-scope .staggered-menu-panel { position: fixed; inset: 0; width: 100vw; height: 100vh; background: rgba(10,12,18,0.88); color: #fff; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; padding: 6em 1.25em calc(1.25em + env(safe-area-inset-bottom, 16px)) 1.25em; overflow-y: auto; z-index: 80; will-change: transform; }
+/* Unscoped equivalents so the portal header gets proper layout */
+.sm-toggle-textWrap { position: relative; margin-right: 0.5em; display: inline-block; height: 1.1em; overflow: hidden; white-space: nowrap; width: var(--sm-toggle-width, auto); min-width: var(--sm-toggle-width, auto); }
+.sm-toggle-textInner { display: flex; flex-direction: column; line-height: 1; }
+.sm-toggle-line { display: block; height: 1.1em; line-height: 1; }
+.sm-icon { position: relative; width: 18px; height: 18px; flex: 0 0 18px; display: inline-flex; align-items: center; justify-content: center; will-change: transform; }
+.sm-panel-itemWrap { position: relative; overflow: hidden; line-height: 1; }
+.sm-icon-line { position: absolute; left: 50%; top: 50%; width: 100%; height: 2px; background: currentColor; border-radius: 2px; transform: translate(-50%, -50%); will-change: transform; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+.sm-line { display: none !important; }
+@keyframes menuButtonFadeIn { 
+  from { opacity: 0; transform: translateX(-50%) translateY(12px) scale(0.95); } 
+  to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } 
+}
+
+/* Custom Animated Menu Button */
+.menu-toggle-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 40px;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  background: transparent;
+  border: none;
+  border-radius: 50px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: center;
+}
+
+.menu-toggle-btn:hover {
+  transform: translateY(-1px);
+}
+
+.menu-toggle-btn:active {
+  transform: scale(0.96);
+}
+
+/* Background layers */
+.btn-bg-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 50px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-bg-primary {
+  background: rgba(10, 15, 25, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(107, 193, 255, 0.2);
+  box-shadow: 
+    0 4px 16px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.menu-toggle-btn:hover .btn-bg-primary {
+  background: rgba(15, 20, 35, 0.75);
+  border-color: rgba(107, 193, 255, 0.35);
+  box-shadow: 
+    0 6px 24px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(107, 193, 255, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.btn-bg-glow {
+  background: radial-gradient(circle at 50% 0%, 
+    rgba(107, 193, 255, 0.08) 0%,
+    transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.menu-toggle-btn:hover .btn-bg-glow {
+  opacity: 1;
+}
+
+/* Animated border shimmer */
+.btn-border-shimmer {
+  position: absolute;
+  inset: -1px;
+  border-radius: 50px;
+  padding: 1px;
+  background: conic-gradient(from 0deg,
+    transparent 0deg,
+    rgba(107, 193, 255, 0.3) 90deg,
+    rgba(174, 228, 255, 0.4) 180deg,
+    rgba(107, 193, 255, 0.3) 270deg,
+    transparent 360deg);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  opacity: 0;
+  animation: shimmerRotate 4s linear infinite;
+  transition: opacity 0.3s ease;
+}
+
+.menu-toggle-btn:hover .btn-border-shimmer {
+  opacity: 0.6;
+}
+
+/* Button content */
+.btn-content {
+  position: relative;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.9);
+  transition: all 0.3s ease;
+}
+
+.menu-toggle-btn:hover .btn-content {
+  color: rgba(255, 255, 255, 1);
+}
+
+/* Icon lines improvements */
+.sm-icon-line {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: currentColor;
+}
+
+@keyframes shimmerRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Focus visible state */
+.menu-toggle-btn:focus-visible {
+  outline: 2px solid rgba(107, 193, 255, 0.5);
+  outline-offset: 3px;
+}
+.sm-scope .staggered-menu-panel { position: fixed; inset: 0; width: 100vw; height: 100svh; background: rgba(10,12,18,0.88); color: #fff; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; --sm-pad-top: 4.5em; --sm-pad-bottom: calc(1.25em + env(safe-area-inset-bottom, 16px)); padding: var(--sm-pad-top) 1.25em var(--sm-pad-bottom) 1.25em; overflow-y: auto; z-index: 80; }
+.sm-scope .staggered-menu-wrapper:not([data-open]) .staggered-menu-panel { visibility: hidden; opacity: 0; pointer-events: none; }
+.sm-scope .staggered-menu-wrapper[data-open] .staggered-menu-panel { visibility: visible; opacity: 1; pointer-events: auto; }
+.sm-scope .sm-panel-anim { will-change: transform, opacity; }
+.sm-scope .staggered-menu-panel { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; overflow-anchor: none; scroll-behavior: auto; }
 .sm-scope .staggered-menu-panel::-webkit-scrollbar { width: 0 !important; height: 0 !important; background: transparent !important; }
 .sm-scope .staggered-menu-panel::-webkit-scrollbar-thumb { background: transparent !important; border: none !important; }
 .sm-scope .staggered-menu-panel { scrollbar-width: none; -ms-overflow-style: none; }
-.sm-scope [data-position='right'] .staggered-menu-panel { transform: translateX(100%); }
-.sm-scope [data-position='left'] .staggered-menu-panel { transform: translateX(-100%); }
-.sm-scope [data-open] .staggered-menu-panel { transform: translateX(0) !important; }
+/* Note: Transforms for open/close are controlled by GSAP on .sm-panel-anim; the backdrop panel remains full-screen fixed. */
 .sm-scope [data-position='left'] .staggered-menu-panel { right: auto; left: 0; }
 .sm-scope .sm-prelayers { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 70; }
 .sm-scope [data-position='left'] .sm-prelayers { right: auto; left: 0; }
@@ -546,11 +734,17 @@ export default function StaggeredMenu({
 @media (max-width: 1024px) { .sm-scope .staggered-menu-wrapper[data-open] .sm-logo-img { filter: invert(100%); } .sm-scope .sm-panel-list { gap: 1rem; } }
 @media (max-width: 640px) {
   /* Move menu button to bottom center on mobile */
-  .sm-scope .staggered-menu-header { top: auto; bottom: 0; left: 0; right: 0; justify-content: center; padding: 0.75rem 1rem calc(0.9rem + env(safe-area-inset-bottom, 12px)); }
+  .sm-scope .staggered-menu-header { top: auto; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); left: 50%; right: auto; transform: translateX(-50%); justify-content: center; padding: 0; width: auto; }
+  .staggered-menu-header { top: auto; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); left: 50%; right: auto; transform: translateX(-50%); justify-content: center; padding: 0; width: auto; }
   .sm-scope .sm-logo { display: none; }
+  .sm-logo { display: none; }
   .sm-scope .staggered-menu-wrapper[data-open] .sm-logo-img { filter: invert(100%); }
+  .staggered-menu-wrapper[data-open] .sm-logo-img { filter: invert(100%); }
+  .menu-toggle-btn { padding: 16px 32px; font-size: 18px; }
+  .sm-icon { width: 16px !important; height: 16px !important; }
   .sm-scope .sm-panel-item { font-size: clamp(1.6rem, 8vw, 2.4rem); }
   .sm-scope .sm-panel-list { gap: 1.1rem; padding-bottom: 1.25rem; }
+  .sm-scope .staggered-menu-panel { --sm-pad-top: 4em; --sm-pad-bottom: calc(1.25em + env(safe-area-inset-bottom, 12px)); }
 }
 @supports (top: env(safe-area-inset-top)) { .sm-scope .staggered-menu-header { padding-top: calc(1rem + env(safe-area-inset-top)); padding-right: calc(1.25rem + env(safe-area-inset-right)); } }
 

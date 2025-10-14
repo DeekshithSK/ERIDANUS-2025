@@ -19,6 +19,8 @@ const StarBorder = React.forwardRef(({
   thickness = 1,
   thicknessX,
   radius = 20,
+  innerPadding,
+  innerFontSize,
   children,
   ...rest
 }, ref) => {
@@ -39,10 +41,10 @@ const StarBorder = React.forwardRef(({
     position: 'absolute',
     width: '260%',
     height: '180%',
-    opacity: 0.9,
+    opacity: 0.55,
     borderRadius: '9999px',
     zIndex: 0,
-    background: `radial-gradient(circle, ${color}, transparent 22%)`,
+    background: `radial-gradient(circle, ${color}, transparent 18%)`,
     animationTimingFunction: 'linear',
     animationIterationCount: 'infinite',
     animationDirection: 'alternate',
@@ -109,13 +111,16 @@ const StarBorder = React.forwardRef(({
         style={{
           position: 'relative',
           zIndex: 1,
-          background: 'linear-gradient(180deg, rgba(0,0,0,0.95), rgba(20,22,28,0.95))',
-          border: '1px solid rgba(107, 193, 255, 0.18)',
+          background: 'linear-gradient(135deg, rgba(10,12,20,0.98) 0%, rgba(15,18,28,0.96) 100%)',
+          border: '1px solid rgba(107, 193, 255, 0.22)',
           textAlign: 'center',
-          fontSize: 16,
-          padding: '16px 26px',
+          fontSize: innerFontSize ?? 16,
+          padding: innerPadding ?? '16px 26px',
           borderRadius: computedRadius,
-          boxShadow: '0 10px 30px rgba(0,0,0,0.35)'
+          boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(107,193,255,0.1)',
+          transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)'
         }}
       >
         {children}
@@ -123,16 +128,32 @@ const StarBorder = React.forwardRef(({
 
       {/* Scoped styles for animations */}
       <style>{`
+        .star-border-wrap {
+          transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .star-border-wrap:hover {
+          transform: translateY(-2px);
+        }
+        .star-border-wrap:active {
+          transform: translateY(0px);
+        }
         .star-border-wrap::before {
           content: "";
           position: absolute;
           inset: 2px;
           border-radius: inherit;
           pointer-events: none;
-          border: 1px solid color-mix(in oklab, var(--star-border-color) 55%, transparent);
+          border: 1px solid color-mix(in oklab, var(--star-border-color) 40%, transparent);
           box-shadow:
-            0 0 14px color-mix(in oklab, var(--star-border-color) 28%, transparent),
-            inset 0 0 10px color-mix(in oklab, var(--star-border-color) 12%, transparent);
+            0 0 12px color-mix(in oklab, var(--star-border-color) 22%, transparent),
+            inset 0 0 8px color-mix(in oklab, var(--star-border-color) 10%, transparent);
+          transition: all 0.3s ease;
+        }
+        .star-border-wrap:hover::before {
+          border-color: color-mix(in oklab, var(--star-border-color) 60%, transparent);
+          box-shadow:
+            0 0 20px color-mix(in oklab, var(--star-border-color) 35%, transparent),
+            inset 0 0 12px color-mix(in oklab, var(--star-border-color) 15%, transparent);
         }
         .star-border-wrap::after {
           content: "";
@@ -152,24 +173,37 @@ const StarBorder = React.forwardRef(({
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask-composite: exclude;
           animation: star-ring-rotate var(--star-speed, 6s) linear infinite;
-          opacity: 0.7;
+          opacity: 0.5;
           pointer-events: none;
+          transition: opacity 0.3s ease;
+        }
+        .star-border-wrap:hover::after {
+          opacity: 0.75;
+          animation-duration: calc(var(--star-speed, 6s) * 0.7);
+        }
+        .star-border-wrap:hover .star-inner {
+          background: linear-gradient(135deg, rgba(12,15,24,0.98) 0%, rgba(18,22,32,0.96) 100%);
+          border-color: rgba(107, 193, 255, 0.35);
+          box-shadow: 
+            0 6px 32px rgba(0,0,0,0.5),
+            0 0 0 1px rgba(107,193,255,0.15),
+            inset 0 1px 0 rgba(107,193,255,0.15);
         }
         @keyframes star-ring-rotate { to { transform: rotate(360deg); } }
         @keyframes star-movement-bottom {
-          0% { transform: translate(0%, 0%); opacity: 1; }
+          0% { transform: translate(0%, 0%); opacity: 0.55; }
           100% { transform: translate(-100%, 0%); opacity: 0; }
         }
         @keyframes star-movement-top {
-          0% { transform: translate(0%, 0%); opacity: 1; }
+          0% { transform: translate(0%, 0%); opacity: 0.55; }
           100% { transform: translate(100%, 0%); opacity: 0; }
         }
         @keyframes star-movement-left {
-          0% { transform: translate(0%, 0%); opacity: 1; }
+          0% { transform: translate(0%, 0%); opacity: 0.55; }
           100% { transform: translate(0%, -100%); opacity: 0; }
         }
         @keyframes star-movement-right {
-          0% { transform: translate(0%, 0%); opacity: 1; }
+          0% { transform: translate(0%, 0%); opacity: 0.55; }
           100% { transform: translate(0%, 100%); opacity: 0; }
         }
         .animate-star-movement-bottom { animation: star-movement-bottom linear infinite alternate; }
