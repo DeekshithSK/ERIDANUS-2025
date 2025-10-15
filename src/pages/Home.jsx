@@ -59,12 +59,12 @@ export default function Home({ playHeroAnim = false }) {
     {/* Minimal overlay content */}
   <section className="overlay home-overlay" style={{ padding: '6px 10px' }}>
   <h1 ref={headlineRef} className="headline" style={{ marginTop: 0 }}>ERIDANUS 2025</h1>
-  <p ref={subheadRef} className="subhead">Organized by Nitte Institute of Professional Education, Padil 
-    (NIPE)</p>
 
-        {/* Minimal date/time section (outer box removed) */}
+    <p ref={subheadRef} className="subhead">Organized by Nitte Institute of Professional Education, Padil 
+      <br />
+      <span className="subhead-assoc">In Association with The Directorate of Research,<br /> Nitte DU</span></p>
         <div className="event-datetime" role="group" aria-label="Event schedule">
-          <div ref={dateRef} className="event-date-large">November 2, 2025</div>
+          <div ref={dateRef} className="event-date-large">November 4, 2025</div>
           <div ref={timeRef} className="event-time-small">9:00 AM – 4:30 PM</div>
           {/* If you prefer a range style like the reference: replace the date above with:
               October 7 – October 8, 2025 */}
@@ -91,6 +91,7 @@ export default function Home({ playHeroAnim = false }) {
           /* Larger, responsive hero heading and centered subhead */
           .headline { font-size: clamp(2.4rem, 8.5vw, 4.8rem); line-height: 1.05; letter-spacing: -0.02em; font-weight: 700; text-align: center; color: #fff; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
           .subhead { margin-top: 0.25rem; font-size: clamp(1rem, 2.8vw, 1.25rem); color: #a8b4ff; text-align: center; }
+            .subhead .subhead-assoc { display: inline-block; color: #fff; font-size: clamp(1.05rem, 3.2vw, 1.35rem); margin-top: 25px; }
           /* Minimal date/time styles */
           .event-datetime { margin: 0.9rem auto 0; text-align: center; width: 100%; max-width: 1000px; animation: fadeUp 650ms ease-out both; }
           .event-date-large { font-size: clamp(1.6rem, 6.2vw, 3.2rem); font-weight: 700; color: #fff; letter-spacing: -0.01em; --dateGlow: 0.25; text-shadow: 0 4px 24px rgba(118,143,255,var(--dateGlow)); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }

@@ -13,6 +13,7 @@ const cards = [
     extraValue: '18inc × 24inc (portrait)',
     price: '₹260',
     cta: 'Register for Angetenar',
+    url: 'https://forms.gle/jin6avP2rEfyqmgW8',
     accent: ['#6a5cff', '#8a6bff'],
     icon: 'image'
   },
@@ -26,6 +27,7 @@ const cards = [
     extraValue: '10 mins + 5 mins Q&A',
     price: '₹200',
     cta: 'Register for Zaurak',
+    url: 'https://forms.gle/VxVfXCXMU4NE7WTY7',
     accent: ['#00b472', '#19d38c'],
     icon: 'video'
   },
@@ -39,6 +41,7 @@ const cards = [
     extraValue: '12 mins + 3 mins Q&A',
     price: '₹350',
     cta: 'Register for Beid',
+    url: 'https://forms.gle/T4Utnerghy8vw3TPA',
     accent: ['#ff6a3a', '#ff8a4e'],
     icon: 'abstract'
   }
@@ -140,12 +143,12 @@ export default function Events() {
                 </div>
               </div>
               <div className="ev-cta">
-                <button type="button" className="ev-btn" aria-label={e.cta}>
+                <a href={e.url} target="_blank" rel="noopener noreferrer" className="ev-btn" aria-label={e.cta}>
                   <span className="ev-btn-icon" aria-hidden>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 12h10M13 6l6 6-6 6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></svg>
                   </span>
                   <span>{e.cta}</span>
-                </button>
+                </a>
               </div>
             </article>
           ))}
