@@ -36,9 +36,11 @@ export default function IntroOverlay({ onDone }) {
   if (!show) return null;
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:9999 }}>
+    <div style={{ position:'fixed', inset:0, zIndex:9999, backgroundColor:'#0a0c12', overflow:'hidden', WebkitTapHighlightColor:'transparent' }}>
+      {/* Safe-area top filler to avoid any notch/status-bar seam */}
+      <div aria-hidden style={{ position:'absolute', top:0, left:0, right:0, height:'env(safe-area-inset-top, 0px)', background:'#0a0c12', pointerEvents:'none' }} />
       {/* Galaxy background */}
-      <div style={{ position:'absolute', inset:0 }} aria-hidden>
+      <div style={{ position:'absolute', top:'-1px', left:'-1px', right:'-1px', bottom:'-1px' }} aria-hidden>
         <Galaxy 
           mouseRepulsion={false}
           mouseInteraction={false}
