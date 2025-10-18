@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home.jsx'
 import About from './pages/About.jsx'
@@ -8,6 +9,7 @@ import Venue from './pages/Venue.jsx'
 import Resources from './pages/Resources.jsx'
 import IntroOverlay from './components/IntroOverlay.jsx'
 import StaggeredMenu from './components/StaggeredMenu.jsx'
+import Galaxy from './components/Galaxy.jsx'
 
 export default function App() {
   const [introDone, setIntroDone] = useState(false)
@@ -35,6 +37,23 @@ export default function App() {
   }, [])
   return (
     <div className="app-root">
+      {/* Global fixed galaxy background via portal to <body>, ensures true viewport-level layer */}
+      {introDone && typeof document !== 'undefined' && createPortal(
+        <div className="galaxy-wrap" aria-hidden>
+          <Galaxy
+            mouseRepulsion={false}
+            mouseInteraction={false}
+            density={0.5}
+            glowIntensity={0.65}
+            saturation={0.1}
+            hueShift={140}
+            rotationSpeed={0.05}
+            twinkleIntensity={0.45}
+            transparent={false}
+          />
+        </div>,
+        document.body
+      )}
       {introDone ? (
         <div className="app-fade-in">
           <StaggeredMenu

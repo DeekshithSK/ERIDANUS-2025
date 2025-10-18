@@ -1,6 +1,5 @@
 import React, { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import Galaxy from '../components/Galaxy.jsx'
 
 const schedule = [
   { time: '09:30 – 09:50 AM', title: 'Formal Event', desc: 'An elegant gathering characterized by a formal agenda and sophisticated decorum.' },
@@ -36,20 +35,6 @@ export default function Program() {
 
   return (
   <main className="hero hero-min program-hero" aria-label="Program Timeline">
-      {/* Galaxy background for consistency */}
-      <div className="galaxy-bg" aria-hidden>
-        <Galaxy 
-          mouseRepulsion={false}
-          mouseInteraction={false}
-          density={0.5}
-          glowIntensity={0.45}
-          saturation={0.0}
-          hueShift={0}
-          rotationSpeed={0.035}
-          twinkleIntensity={0.3}
-          transparent={false}
-        />
-      </div>
       <section className="overlay program-overlay" style={{ padding: '16px 12px' }}>
         <h1 ref={titleRef} className="program-title">Program Timeline</h1>
         <div ref={trackRef} className="timeline">

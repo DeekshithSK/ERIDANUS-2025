@@ -1,25 +1,10 @@
 import React from 'react'
-import Galaxy from '../components/Galaxy.jsx'
 import posterPdf from '../../poster_template.pdf'
 import abstractPdf from '../../abstract_presentation.pdf'
 
 export default function Resources() {
   return (
     <main className="hero hero-min" aria-label="Resources">
-      {/* Galaxy background */}
-      <div className="galaxy-bg" aria-hidden>
-        <Galaxy 
-          mouseRepulsion={false}
-          mouseInteraction={false}
-          density={0.5}
-          glowIntensity={0.45}
-          saturation={0.0}
-          hueShift={0}
-          rotationSpeed={0.035}
-          twinkleIntensity={0.3}
-          transparent={false}
-        />
-      </div>
       <section className="overlay resources-overlay" style={{ padding: '16px 12px' }}>
         <h1 className="headline" style={{ marginTop: 8 }}>Resources</h1>
         <p className="subhead">Guides, downloads, and links</p>

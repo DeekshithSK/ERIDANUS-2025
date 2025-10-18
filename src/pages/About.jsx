@@ -1,6 +1,5 @@
 import React, { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import Galaxy from '../components/Galaxy.jsx'
 
 export default function About() {
   const titleRef = useRef(null)
@@ -21,20 +20,6 @@ export default function About() {
 
   return (
     <main className="hero hero-min" aria-label="About ERIDANUS 2025">
-      {/* Galaxy background for consistency */}
-      <div className="galaxy-bg" aria-hidden>
-        <Galaxy 
-          mouseRepulsion={false}
-          mouseInteraction={false}
-          density={0.5}
-          glowIntensity={0.45}
-          saturation={0.0}
-          hueShift={0}
-          rotationSpeed={0.04}
-          twinkleIntensity={0.3}
-          transparent={false}
-        />
-      </div>
       <section className="overlay about-overlay" style={{ padding: '16px 12px' }}>
         <h1 ref={titleRef} className="about-title">About ERIDANUS 2025</h1>
         <p ref={bodyRef} className="about-copy">

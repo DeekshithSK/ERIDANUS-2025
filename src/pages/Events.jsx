@@ -1,6 +1,5 @@
 import React, { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import Galaxy from '../components/Galaxy.jsx'
 
 const cards = [
   {
@@ -13,7 +12,7 @@ const cards = [
     extraValue: '18inc × 24inc (portrait)',
     price: '₹260',
     cta: 'Register for Angetenar',
-    url: 'https://forms.gle/jin6avP2rEfyqmgW8',
+    url: 'https://forms.gle/uhqZhb2S7SbL7arN6',
     accent: ['#6a5cff', '#8a6bff'],
     icon: 'image'
   },
@@ -27,7 +26,7 @@ const cards = [
     extraValue: '10 mins + 5 mins Q&A',
     price: '₹200',
     cta: 'Register for Zaurak',
-    url: 'https://forms.gle/VxVfXCXMU4NE7WTY7',
+    url: 'https://forms.gle/eSi6XCBDmstvFJ466',
     accent: ['#00b472', '#19d38c'],
     icon: 'video'
   },
@@ -41,7 +40,7 @@ const cards = [
     extraValue: '12 mins + 3 mins Q&A',
     price: '₹350',
     cta: 'Register for Beid',
-    url: 'https://forms.gle/T4Utnerghy8vw3TPA',
+    url: 'https://forms.gle/Ef48hqGpScdGgsBB9',
     accent: ['#ff6a3a', '#ff8a4e'],
     icon: 'abstract'
   }
@@ -70,20 +69,6 @@ export default function Events() {
 
   return (
     <main className="hero hero-min" aria-label="Events">
-      {/* Galaxy background */}
-      <div className="galaxy-bg" aria-hidden>
-        <Galaxy 
-          mouseRepulsion={false}
-          mouseInteraction={false}
-          density={0.5}
-          glowIntensity={0.45}
-          saturation={0.0}
-          hueShift={0}
-          rotationSpeed={0.035}
-          twinkleIntensity={0.3}
-          transparent={false}
-        />
-      </div>
       <section className="overlay events-overlay" style={{ padding: '16px 12px' }}>
         <h1 ref={titleRef} className="events-title">Events</h1>
         <div ref={gridRef} className="events-grid">

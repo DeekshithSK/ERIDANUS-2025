@@ -1,6 +1,5 @@
 import React, { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import Galaxy from '../components/Galaxy.jsx'
 import venueImg from '../../nipe padil.webp'
 
 export default function Venue() {
@@ -24,20 +23,6 @@ export default function Venue() {
 
   return (
     <main className="hero hero-min" aria-label="Venue">
-      {/* Galaxy background */}
-      <div className="galaxy-bg" aria-hidden>
-        <Galaxy 
-          mouseRepulsion={false}
-          mouseInteraction={false}
-          density={0.5}
-          glowIntensity={0.45}
-          saturation={0.0}
-          hueShift={0}
-          rotationSpeed={0.035}
-          twinkleIntensity={0.3}
-          transparent={false}
-        />
-      </div>
       <section className="overlay venue-overlay" style={{ padding: '16px 12px' }}>
         <h1 ref={titleRef} className="venue-title">Venue</h1>
         <p ref={leadRef} className="venue-lead">NIPE Padil Campus, Mangaluru</p>
