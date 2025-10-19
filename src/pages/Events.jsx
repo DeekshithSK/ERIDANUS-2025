@@ -1,11 +1,17 @@
 import React, { useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
+// Import event images (kept at repo root). Vite will bundle these via URL imports.
+// Note: Filenames include spaces; importing via string literal is supported.
+import imgInPerson from '../../in person abstract presentation.jpg'
+import imgOnline from '../../online abstract presentation.jpg'
+import imgPoster from '../../poster presentation.jpg'
 
 const cards = [
   {
     key: 'angetenar',
     name: 'Angetenar',
     subtitle: 'Poster Presentation',
+    image: imgPoster,
     eligibility: 'UG & PU students',
     team: 'Max 2 members',
     extraLabel: 'Poster Size',
@@ -20,6 +26,7 @@ const cards = [
     key: 'zaurak',
     name: 'Zaurak',
     subtitle: 'Online Abstract Presentation',
+    image: imgOnline,
     eligibility: 'UG, PG, Researchers',
     team: 'Max 2 members',
     extraLabel: 'Duration',
@@ -34,6 +41,7 @@ const cards = [
     key: 'beid',
     name: 'Beid',
     subtitle: 'In-Person Abstract Presentation',
+    image: imgInPerson,
     eligibility: 'UG, PG, Researchers',
     team: 'Max 2 members',
     extraLabel: 'Duration',
@@ -74,29 +82,9 @@ export default function Events() {
         <div ref={gridRef} className="events-grid">
           {cards.map(e => (
             <article key={e.key} className="ev-card" aria-labelledby={`${e.key}-title`}>
-              <div className="ev-badge" aria-hidden>
-                <div className="ev-badge-inner" style={{ background: `linear-gradient(135deg, ${e.accent[0]}, ${e.accent[1]})` }}>
-                  {e.icon === 'image' && (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="3.5" y="6" width="17" height="12" rx="3" stroke="#fff" strokeWidth="1.6"/>
-                      <circle cx="9" cy="10" r="1.6" fill="#fff" />
-                      <path d="M7 16l3-3 2 2 3-3 3 4" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )}
-                  {e.icon === 'video' && (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="3.5" y="6" width="12" height="12" rx="2.5" stroke="#fff" strokeWidth="1.6"/>
-                      <path d="M16 10l4-2v8l-4-2v-4z" fill="#fff"/>
-                    </svg>
-                  )}
-                  {e.icon === 'abstract' && (
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M6 12a6 6 0 1112 0 6 6 0 01-12 0z" stroke="#fff" strokeWidth="1.6" opacity="0.8"/>
-                      <path d="M12 6v12M6 12h12" stroke="#fff" strokeWidth="1.6" opacity="0.8"/>
-                    </svg>
-                  )}
-                </div>
-              </div>
+              <figure className="ev-hero">
+                <img src={e.image} alt={`${e.subtitle} banner`} loading="lazy" />
+              </figure>
               <header className="ev-header">
                 <h2 id={`${e.key}-title`} className="ev-title">{e.name}</h2>
                 <p className="ev-subtitle">{e.subtitle}</p>
@@ -144,8 +132,9 @@ export default function Events() {
           .events-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.1rem; }
           .ev-card { position: relative; display: flex; flex-direction: column; gap: 0.75rem; background: rgba(10,12,18,0.55); border: 1px solid rgba(107,193,255,0.12); border-radius: 18px; padding: 1.1rem; color: #e9e9ef; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: 0 14px 38px rgba(0,0,0,0.45); transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease; }
           .ev-card:hover { transform: translateY(-2px); border-color: rgba(107,193,255,0.22); box-shadow: 0 18px 46px rgba(0,0,0,0.55); }
-          .ev-badge { display: flex; align-items: center; justify-content: center; }
-          .ev-badge-inner { display: grid; place-items: center; width: 56px; height: 56px; border-radius: 14px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.18), 0 8px 24px rgba(0,0,0,0.25); }
+          .ev-hero { margin: -0.1rem 0 0.35rem; position: relative; border-radius: 14px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 24px rgba(0,0,0,0.25); }
+          .ev-hero::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.0), rgba(0,0,0,0.08)); pointer-events: none; }
+          .ev-hero img { display: block; width: 100%; height: 180px; object-fit: cover; object-position: center; }
           .ev-header { text-align: left; }
           .ev-title { font-weight: 800; color: #fff; font-size: clamp(1.25rem, 2.6vw, 1.6rem); margin: 0.25rem 0 0; }
           .ev-subtitle { color: #cfd3ff; font-weight: 700; margin: 0; }

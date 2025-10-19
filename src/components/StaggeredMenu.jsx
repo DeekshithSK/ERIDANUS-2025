@@ -67,8 +67,8 @@ export default function StaggeredMenu({
         preLayers = Array.from(preContainer.querySelectorAll('.sm-prelayer'));
       }
       preLayerElsRef.current = preLayers;
-      const offscreen = position === 'left' ? -100 : 100;
-      gsap.set(panel, { xPercent: offscreen });
+  // Keep panel anchored; we animate only inner content for reliability
+  gsap.set(panel, { xPercent: 0 });
       gsap.set(plusH, { transformOrigin: '50% 50%', rotate: 0 });
       gsap.set(plusV, { transformOrigin: '50% 50%', rotate: 90 });
       gsap.set(icon, { rotate: 0, transformOrigin: '50% 50%' });
@@ -191,7 +191,7 @@ export default function StaggeredMenu({
     if (!panel) return;
     if (busyRef.current) return;
     busyRef.current = true;
-    const offscreen = position === 'left' ? -100 : 100;
+  // No panel slide; keep anchored and fade/scale inner content only
     closeTweenRef.current?.kill();
     const itemEls = Array.from(panel.querySelectorAll('.sm-panel-itemLabel'));
     const numberEls = Array.from(panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
@@ -222,7 +222,6 @@ export default function StaggeredMenu({
     if (anim) tl.to(anim, { autoAlpha: 0, scale: 0.96, duration: 0.45, ease: 'power2.in' }, 0.08)
       .add(() => {
         // Reset for next open
-        gsap.set(panel, { xPercent: offscreen });
         if (anim) gsap.set(anim, { xPercent: 0, autoAlpha: 1, scale: 1 });
         if (itemEls.length) gsap.set(itemEls, { autoAlpha: 0, yPercent: 0, y: 10, scale: 0.98, rotate: 0 });
         if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 0 });
@@ -339,36 +338,41 @@ export default function StaggeredMenu({
     }
     if (target === openRef.current) return; // nothing to do
     if (target) {
-      // First, scroll page to top; then open the overlay
-      scrollPageToTop(true, 900).then(() => {
-        openRef.current = true;
-        setOpen(true);
-        try {
-          const body = document.body;
-          body.style.overflow = 'hidden';
-          body.style.touchAction = 'none';
-        } catch {}
-        const panel = panelRef.current;
-        if (panel) {
-          try { panel.focus({ preventScroll: true }); } catch {}
-          panel.scrollTop = 0;
-          panel.scrollTo?.(0, 0);
-          // Keep backdrop visible; prep inner anim content
-          gsap.set(panel, { xPercent: 0 });
-          const anim = panel.querySelector('.sm-panel-anim');
-          if (anim) gsap.set(anim, { autoAlpha: 0, scale: 0.96, transformOrigin: '50% 50%' });
-          const itemEls = Array.from(panel.querySelectorAll('.sm-panel-itemLabel'));
-          if (itemEls.length) gsap.set(itemEls, { autoAlpha: 0, yPercent: 0, y: 10, scale: 0.98, rotate: 0 });
-          const numberEls = Array.from(panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
-          if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 0 });
+      // Open overlay immediately at current scroll position
+      openRef.current = true;
+      setOpen(true);
+      try {
+        const body = document.body;
+        const html = document.documentElement;
+        const scrollY = window.scrollY || window.pageYOffset || 0;
+        body.dataset.smLock = String(scrollY);
+        body.style.overflow = 'hidden';
+        body.style.touchAction = 'none';
+        if (html) {
+          html.style.overflow = 'hidden';
+          html.style.height = '100%';
         }
-        onMenuOpen?.();
-        playOpen();
-        // Trigger open-state UI animations now that the open has begun
-        animateIcon(true);
-        animateColor(true);
-        animateText(true);
-      });
+      } catch {}
+      const panel = panelRef.current;
+      if (panel) {
+        try { panel.focus({ preventScroll: true }); } catch {}
+        panel.scrollTop = 0;
+        panel.scrollTo?.(0, 0);
+        // Keep backdrop visible; prep inner anim content
+        gsap.set(panel, { xPercent: 0 });
+        const anim = panel.querySelector('.sm-panel-anim');
+        if (anim) gsap.set(anim, { autoAlpha: 0, scale: 0.96, transformOrigin: '50% 50%' });
+        const itemEls = Array.from(panel.querySelectorAll('.sm-panel-itemLabel'));
+        if (itemEls.length) gsap.set(itemEls, { autoAlpha: 0, yPercent: 0, y: 10, scale: 0.98, rotate: 0 });
+        const numberEls = Array.from(panel.querySelectorAll('.sm-panel-list[data-numbering] .sm-panel-item'));
+        if (numberEls.length) gsap.set(numberEls, { ['--sm-num-opacity']: 0 });
+      }
+      onMenuOpen?.();
+      playOpen();
+      // Trigger open-state UI animations now that the open has begun
+      animateIcon(true);
+      animateColor(true);
+      animateText(true);
       return;
     } else {
       openRef.current = false;
@@ -377,15 +381,28 @@ export default function StaggeredMenu({
         setOpen(false);
         try {
           const body = document.body;
+          const html = document.documentElement;
+          const prev = parseInt(body.dataset.smLock || '0', 10) || 0;
           body.style.overflow = '';
           body.style.touchAction = '';
+          if (html) {
+            html.style.overflow = '';
+            html.style.height = '';
+          }
+          window.scrollTo(0, prev);
+          delete body.dataset.smLock;
         } catch {}
       });
       setTimeout(() => {
         try {
           const body = document.body;
+          const html = document.documentElement;
           body.style.overflow = '';
           body.style.touchAction = '';
+          if (html) {
+            html.style.overflow = '';
+            html.style.height = '';
+          }
         } catch {}
       }, 500);
     }
@@ -439,6 +456,7 @@ export default function StaggeredMenu({
           })()}
         </div>
         {mounted ? createPortal(
+          <>
           <header
             className="staggered-menu-header fixed bg-transparent"
             style={{ pointerEvents: 'none' }}
@@ -502,18 +520,18 @@ export default function StaggeredMenu({
                 </span>
               </span>
             </button>
-          </header>, document.body) : null}
-        <aside
-          id="staggered-menu-panel"
-          ref={panelRef}
-          className="staggered-menu-panel bg-[rgba(10,12,18,0.88)] text-white flex flex-col p-[4.5em_1.25em_1.25em_1.25em] overflow-y-auto z-10 backdrop-blur-[10px]"
-          style={{ WebkitBackdropFilter: 'blur(12px)' }}
-          aria-hidden={!open}
-          role="dialog"
-          aria-modal="true"
-          tabIndex={-1}
-        >
-          <div className="sm-panel-anim relative min-h-full">
+          </header>
+          <aside
+            id="staggered-menu-panel"
+            ref={panelRef}
+            className={`staggered-menu-panel bg-[rgba(10,12,18,0.88)] text-white flex flex-col p-[4.5em_1.25em_1.25em_1.25em] overflow-y-auto backdrop-blur-[10px] ${open ? 'is-open' : ''}`}
+            style={{ WebkitBackdropFilter: 'blur(12px)' }}
+            aria-hidden={!open}
+            role="dialog"
+            aria-modal="true"
+            tabIndex={-1}
+          >
+            <div className="sm-panel-anim relative min-h-full">
             {/* Center VFX burst element */}
             <div className="sm-panel-vfx pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[60vmin] h-[60vmin] rounded-full opacity-0"
                  style={{ background: 'radial-gradient(closest-side, rgba(118,143,255,0.25), rgba(118,143,255,0) 65%)' }}
@@ -551,12 +569,13 @@ export default function StaggeredMenu({
               )}
             </ul>
             </div>
-            {/* Bottom-left footer info */}
-            <div className="sm-panel-footer" aria-label="Institution address">
+              {/* Bottom-left footer info */}
+              <div className="sm-panel-footer" aria-label="Institution address">
               Nitte Institute Of Professional Education NH-75, Next to First Neuro Hospital, Kodakkal, Mangaluru – 575007. Karnataka, India.
+              </div>
             </div>
-          </div>
-        </aside>
+          </aside>
+          </>, document.body) : null}
       </div>
       {/* Inline styles for the menu, can be moved to a CSS file if desired */}
   <style>{`
@@ -705,9 +724,12 @@ export default function StaggeredMenu({
   outline: 2px solid rgba(107, 193, 255, 0.5);
   outline-offset: 3px;
 }
-.sm-scope .staggered-menu-panel { position: fixed; inset: 0; width: 100vw; height: 100svh; background: rgba(10,12,18,0.88); color: #fff; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; --sm-pad-top: 4.5em; --sm-pad-bottom: calc(1.25em + env(safe-area-inset-bottom, 16px)); padding: var(--sm-pad-top) 1.25em var(--sm-pad-bottom) 1.25em; overflow-y: auto; z-index: 80; }
+ .sm-scope .staggered-menu-panel { position: fixed; inset: 0; width: 100vw; min-height: 100vh; height: 100vh; height: 100svh; height: 100lvh; height: 100dvh; background: rgba(10,12,18,0.88); color: #fff; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; flex-direction: column; --sm-pad-top: 4.5em; --sm-pad-bottom: calc(1.25em + env(safe-area-inset-bottom, 16px)); padding: var(--sm-pad-top) 1.25em var(--sm-pad-bottom) 1.25em; overflow-y: auto; z-index: 1980; }
 .sm-scope .staggered-menu-wrapper:not([data-open]) .staggered-menu-panel { visibility: hidden; opacity: 0; pointer-events: none; }
 .sm-scope .staggered-menu-wrapper[data-open] .staggered-menu-panel { visibility: visible; opacity: 1; pointer-events: auto; }
+ /* Unscoped rules for portaled panel */
+ .staggered-menu-panel { position: fixed; inset: 0; width: 100vw; min-height: 100vh; height: 100vh; height: 100svh; height: 100lvh; height: 100dvh; background: rgba(10,12,18,0.88); color: #fff; display: flex; flex-direction: column; --sm-pad-top: 4.5em; --sm-pad-bottom: calc(1.25em + env(safe-area-inset-bottom, 16px)); padding: var(--sm-pad-top) 1.25em var(--sm-pad-bottom) 1.25em; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); z-index: 1980; visibility: hidden; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; overflow-y: auto; }
+ .staggered-menu-panel.is-open { visibility: visible; opacity: 1; pointer-events: auto; }
 .sm-scope .sm-panel-anim { will-change: transform, opacity; }
 .sm-scope .staggered-menu-panel { overscroll-behavior: contain; -webkit-overflow-scrolling: touch; overflow-anchor: none; scroll-behavior: auto; }
 .sm-scope .staggered-menu-panel::-webkit-scrollbar { width: 0 !important; height: 0 !important; background: transparent !important; }
@@ -715,7 +737,7 @@ export default function StaggeredMenu({
 .sm-scope .staggered-menu-panel { scrollbar-width: none; -ms-overflow-style: none; }
 /* Note: Transforms for open/close are controlled by GSAP on .sm-panel-anim; the backdrop panel remains full-screen fixed. */
 .sm-scope [data-position='left'] .staggered-menu-panel { right: auto; left: 0; }
-.sm-scope .sm-prelayers { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 70; }
+.sm-scope .sm-prelayers { position: fixed; inset: 0; width: 100vw; min-height: 100vh; height: 100vh; height: 100svh; height: 100lvh; height: 100dvh; pointer-events: none; z-index: 970; }
 .sm-scope [data-position='left'] .sm-prelayers { right: auto; left: 0; }
 .sm-scope .sm-prelayer { position: absolute; top: 0; right: 0; height: 100%; width: 100%; will-change: transform; }
 .sm-scope [data-position='right'] .sm-prelayer { transform: translateX(100%); }

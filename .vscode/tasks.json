@@ -109,6 +109,21 @@
 				"$vite"
 			],
 			"group": "build"
+		},
+		{
+			"label": "vite:build",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build"
+			],
+			"problemMatcher": [
+				"$eslint-stylish",
+				"$tsc",
+				"$vite"
+			],
+			"group": "build"
 		}
 	]
 }

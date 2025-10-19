@@ -7,9 +7,11 @@ import Program from './pages/Program.jsx'
 import Events from './pages/Events.jsx'
 import Venue from './pages/Venue.jsx'
 import Resources from './pages/Resources.jsx'
+import Contact from './pages/Contact.jsx'
 import IntroOverlay from './components/IntroOverlay.jsx'
-import StaggeredMenu from './components/StaggeredMenu.jsx'
+import MenuOverlay from './components/MenuOverlay.jsx'
 import Galaxy from './components/Galaxy.jsx'
+import logoUrl from '../eridanus.svg'
 
 export default function App() {
   const [introDone, setIntroDone] = useState(false)
@@ -35,6 +37,36 @@ export default function App() {
       }
     } catch {}
   }, [])
+
+  // While intro is playing, aggressively preload the headline logo so it's ready the moment Home mounts
+  useEffect(() => {
+    if (introDone) return
+    try {
+      // Add <link rel="preload" as="image"> to the document head
+      const link = document.createElement('link')
+      link.rel = 'preload'
+      link.as = 'image'
+      link.href = logoUrl
+      // Hint a higher fetch priority where supported
+      link.fetchPriority = 'high'
+      document.head.appendChild(link)
+
+      // Also instantiate an Image and decode it
+      const img = new Image()
+      // @ts-ignore: fetchPriority is supported in modern browsers
+      img.fetchPriority = 'high'
+      img.decoding = 'async'
+      img.loading = 'eager'
+      img.src = logoUrl
+      if (img.decode) {
+        img.decode().catch(() => {})
+      }
+
+      return () => {
+        // Keep the link to preserve the cache; remove if desired
+      }
+    } catch {}
+  }, [introDone])
   return (
     <div className="app-root">
       {/* Global fixed galaxy background via portal to <body>, ensures true viewport-level layer */}
@@ -59,12 +91,7 @@ export default function App() {
       )}
       {introDone ? (
         <div className="app-fade-in">
-          <StaggeredMenu
-            position="right"
-            colors={["#0b0e17", "#202838", "#6bc1ff"]}
-            accentColor="#6bc1ff"
-            displayItemNumbering={false}
-          />
+          <MenuOverlay />
           <Routes>
             <Route path="/" element={<Home playHeroAnim={introDone} />} />
             <Route path="/about" element={<About />} />
@@ -72,6 +99,7 @@ export default function App() {
             <Route path="/events" element={<Events />} />
             <Route path="/venue" element={<Venue />} />
             <Route path="/resources" element={<Resources />} />
+            <Route path="/contact" element={<Contact />} />
           </Routes>
         </div>
       ) : (
