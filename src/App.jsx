@@ -44,10 +44,13 @@ export default function App() {
             mouseRepulsion={false}
             mouseInteraction={false}
             density={0.5}
-            glowIntensity={0.65}
-            saturation={0.1}
-            hueShift={140}
-            rotationSpeed={0.05}
+         glowIntensity={1}
+            saturation={0.85}
+            hueShift={120}
+             warmBias={0.2}
+             colorVariance={0.35}
+             gamma={1.6}
+            rotationSpeed={0.1}
             twinkleIntensity={0.45}
             transparent={false}
           />

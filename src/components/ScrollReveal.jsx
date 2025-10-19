@@ -14,7 +14,10 @@ const ScrollReveal = ({
   containerClassName = '',
   textClassName = '',
   rotationEnd = 'bottom bottom',
-  wordAnimationEnd = 'bottom bottom'
+  wordAnimationEnd = 'bottom bottom',
+  fontSize = 'clamp(1rem, 5vw, 3.2rem)',
+  lineHeight = 1.45,
+  fontWeight = 400
 }) => {
   const containerRef = useRef(null);
 
@@ -103,9 +106,9 @@ const ScrollReveal = ({
       <p
         className={`${textClassName}`}
         style={{
-          fontSize: 'clamp(1rem, 5vw, 3.2rem)',
-          lineHeight: 1,
-          fontWeight: 200
+          fontSize,
+          lineHeight,
+          fontWeight
         }}
       >
         {splitText}

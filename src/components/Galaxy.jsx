@@ -186,6 +186,9 @@ export default function Galaxy({
   rotationSpeed = 0.1,
   autoCenterRepulsion = 0,
   transparent = true,
+  warmBias = 0.2,
+  colorVariance = 0.4,
+  gamma = 1.8,
   ...rest
 }) {
   const ctnDom = useRef(null);
@@ -253,7 +256,10 @@ export default function Galaxy({
         uRepulsionStrength: { value: repulsionStrength },
         uMouseActiveFactor: { value: 0.0 },
         uAutoCenterRepulsion: { value: autoCenterRepulsion },
-        uTransparent: { value: transparent }
+        uTransparent: { value: transparent },
+        uWarmBias: { value: warmBias },
+        uColorVariance: { value: colorVariance },
+        uGamma: { value: gamma }
       }
     });
 
@@ -325,7 +331,10 @@ export default function Galaxy({
     rotationSpeed,
     repulsionStrength,
     autoCenterRepulsion,
-    transparent
+    transparent,
+    warmBias,
+    colorVariance,
+    gamma
   ]);
 
   return <div ref={ctnDom} className="w-full h-full relative" {...rest} />;
