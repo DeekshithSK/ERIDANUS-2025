@@ -253,7 +253,7 @@ export default function Home({ playHeroAnim = false }) {
         {/* Description block (ScrollReveal removed) */}
         <div className="desc-wrap">
           <p ref={descRef} className="home-desc">
-            ERIDANUS 2025 is a premier interdisciplinary conference designed to break down academic silos and foster collaboration. Our mission is to unite bright minds from technology, business, and sustainability to address complex global challenges. We aim to create a dynamic platform for sharing groundbreaking research, innovative business models, and sustainable practices that will shape a better tomorrow.
+            ERIDANUS 2025, the Student Research Congress, is dedicated to fostering interdisciplinary research and driving innovation across technology, finance, and healthcare. This congress bridges the gap between business, fintech, and sustainability, showcasing how technologies like AI, big data, and cloud computing are driving transformative change towards a cleaner, greener future. Participants are provided the opportunity to present their research ideas in the form of posters and abstracts. Poster presentations are to be made in-person, while abstract presentations are conducted at a hybrid mode. By emphasizing ethical AI and cybersecurity and encouraging exploration of new digital ecosystems, the congress empowers inclusive solutions for smart cities and global sustainability.
           </p>
         </div>
 
