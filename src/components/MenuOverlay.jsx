@@ -50,8 +50,13 @@ export default function MenuOverlay({ items = defaultItems }) {
   }, []);
 
   useEffect(() => {
-    if (open) lockScroll();
-    else unlockScroll();
+    if (open) {
+      lockScroll();
+      try { document.dispatchEvent(new CustomEvent('eridanus:menu:open')) } catch {}
+    } else {
+      unlockScroll();
+      try { document.dispatchEvent(new CustomEvent('eridanus:menu:close')) } catch {}
+    }
     return () => unlockScroll();
   }, [open, lockScroll, unlockScroll]);
 
@@ -157,7 +162,8 @@ export default function MenuOverlay({ items = defaultItems }) {
             .mo-footer { position: sticky; bottom: calc(3rem + env(safe-area-inset-bottom, 0px)); text-align: left; max-width: 46ch; font-size: 16px; line-height: 1.55; color: #ffffff; margin-top: auto; }
             @media (max-width: 640px) {
               .mo-item { font-size: clamp(1.6rem, 8vw, 2.2rem); }
-              .mo-footer { font-size: 15px; max-width: 34ch; bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+              .mo-footer { font-size: 15px; max-width: 34ch; bottom: calc(8rem + env(safe-area-inset-bottom, 0px)); }
+              .mo-panel-inner { padding-bottom: calc(9rem + env(safe-area-inset-bottom, 0px)); }
             }
             @keyframes moItemIn { from { opacity: 0; transform: translateY(10px) scale(0.98); } to { opacity: 1; transform: none; } }
             @keyframes moBurst { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); } 40% { opacity: 0.55; transform: translate(-50%, -50%) scale(1.04); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.08); } }

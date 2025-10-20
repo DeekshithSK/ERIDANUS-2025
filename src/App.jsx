@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Routes, Route, useLocation } from 'react-router-dom'
 import Home from './pages/Home.jsx'
@@ -12,10 +12,55 @@ import IntroOverlay from './components/IntroOverlay.jsx'
 import MenuOverlay from './components/MenuOverlay.jsx'
 import Galaxy from './components/Galaxy.jsx'
 import logoUrl from '../eridanus.svg'
+import Lenis from 'lenis'
 
 export default function App() {
   const [introDone, setIntroDone] = useState(false)
   const location = useLocation()
+  const lenisRef = useRef(null)
+
+  // Initialize Lenis once for cross-device smooth/resistant scrolling
+  useEffect(() => {
+    try {
+      const reduce = typeof window !== 'undefined' && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      if (reduce) return
+
+      const lenis = new Lenis({
+        // Slightly longer easing for a gentle, resistant feel
+        duration: 1.1,
+        // Ensure both wheel and touch have smoothing; dampen touch a bit for resistance
+        smoothWheel: true,
+        smoothTouch: true,
+        touchMultiplier: 0.9,
+        // Keep default easing; internal raf loop will drive it
+      })
+      lenisRef.current = lenis
+
+      let rafId
+      const raf = (time) => {
+        lenis.raf(time)
+        rafId = requestAnimationFrame(raf)
+      }
+      rafId = requestAnimationFrame(raf)
+
+      // Pause/resume Lenis when menu opens/closes to avoid fighting body scroll lock
+      const onMenuOpen = () => { try { lenis.stop() } catch {} }
+      const onMenuClose = () => { try { lenis.start() } catch {} }
+      document.addEventListener('eridanus:menu:open', onMenuOpen)
+      document.addEventListener('eridanus:menu:close', onMenuClose)
+
+      // Expose for debugging if needed
+      try { window.__lenis = lenis } catch {}
+
+      return () => {
+        document.removeEventListener('eridanus:menu:open', onMenuOpen)
+        document.removeEventListener('eridanus:menu:close', onMenuClose)
+        if (rafId) cancelAnimationFrame(rafId)
+        try { lenis.destroy() } catch {}
+        lenisRef.current = null
+      }
+    } catch {}
+  }, [])
 
   // Failsafe: on route changes, ensure body scroll is unlocked and reset scroll position
   useEffect(() => {
@@ -24,8 +69,17 @@ export default function App() {
       body.style.overflow = ''
       body.style.touchAction = ''
     } catch {}
-    // Optional: ensure user starts at top of new route
-    try { window.scrollTo({ top: 0, behavior: 'smooth' }) } catch {}
+    // Ensure user starts at top of new route; prefer Lenis for consistent feel
+    try {
+      if (lenisRef.current) {
+        // Give the route a tick to mount before scrolling
+        setTimeout(() => {
+          try { lenisRef.current.scrollTo(0, { duration: 0.8 }) } catch { window.scrollTo({ top: 0, behavior: 'auto' }) }
+        }, 0)
+      } else {
+        window.scrollTo({ top: 0, behavior: 'auto' })
+      }
+    } catch {}
   }, [location.pathname])
 
   // Play intro only once per browser session
