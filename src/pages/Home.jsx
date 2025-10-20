@@ -284,8 +284,8 @@ export default function Home({ playHeroAnim = false }) {
             .headline { line-height: 1.08; top: 92px; }
             .headline.wordmark .wm-eridanus { font-size: clamp(2.2rem, 14vw, 3.6rem); }
             .headline.wordmark .wm-year { font-size: clamp(1rem, 4vw, 1.2rem); letter-spacing: 0.32em; }
-            /* Push organizer line down to avoid overlap with relatively-positioned heading */
-            .org-line { margin-top: 14px; font-size: clamp(0.95rem, 3.4vw, 1.1rem); transform: translateY(0); max-width: 90%; margin-left: auto; margin-right: auto; line-height: 1.35; }
+            /* Push organizer line further down on mobile to increase space under the wordmark */
+            .org-line { margin-top: 22px; font-size: clamp(0.95rem, 3.4vw, 1.1rem); transform: translateY(0); max-width: 90%; margin-left: auto; margin-right: auto; line-height: 1.35; }
           }
           /* Minimal date/time styles */
           .event-datetime { margin: 1.25rem auto 0; text-align: center; width: 100%; max-width: 1000px; animation: fadeUp 650ms ease-out both; }
