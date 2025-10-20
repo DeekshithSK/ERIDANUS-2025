@@ -1,6 +1,6 @@
 import React from 'react'
-import posterPdf from '../../poster_template.pdf'
-import abstractPdf from '../../abstract_presentation.pdf'
+import posterDocx from '../../Poster Creation Instructions - Final.docx'
+import abstractDocx from '../../Abstract Presentation Instructions - Final.docx'
 
 export default function Resources() {
   return (
@@ -10,36 +10,36 @@ export default function Resources() {
         <p className="subhead">Guides, downloads, and links</p>
 
         <div className="cards-grid">
-          {/* Poster template (Angetenar) */}
+          {/* Poster creation instructions (Angetenar) */}
           <article className="res-card">
             <header className="res-head">
-              <h2>Poster presentation instructions</h2>
-              <p>Download the official template for Angetenar presentations</p>
+              <h2>Poster presentation instructions (.DOCX)</h2>
+              <p>Official instructions for creating posters for Angetenar</p>
             </header>
             <div className="res-actions">
               <a
                 className="dl-btn"
-                href={posterPdf}
-                download="poster_template.pdf"
-                aria-label="Download poster presentation template PDF"
+                href={posterDocx}
+                download="Poster_Creation_Instructions.docx"
+                aria-label="Download Poster Creation Instructions (DOCX)"
               >
                 Download
               </a>
             </div>
           </article>
 
-          {/* Abstract formatting (Zaurak & Beid) */}
+          {/* Abstract presentation instructions (Zaurak & Beid) */}
           <article className="res-card">
             <header className="res-head">
-              <h2>Abstract presentation instructions</h2>
+              <h2>Abstract presentation instructions (.DOCX)</h2>
               <p>Formatting guidelines for Zaurak and Beid submissions</p>
             </header>
             <div className="res-actions">
               <a
                 className="dl-btn"
-                href={abstractPdf}
-                download="abstract_presentation.pdf"
-                aria-label="Download abstract presentation guidelines PDF"
+                href={abstractDocx}
+                download="Abstract_Presentation_Instructions.docx"
+                aria-label="Download Abstract Presentation Instructions (DOCX)"
               >
                 Download
               </a>

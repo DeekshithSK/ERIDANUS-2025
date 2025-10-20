@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const defaultItems = [
   { label: 'Home', link: '/' },
@@ -15,6 +15,8 @@ const defaultItems = [
 export default function MenuOverlay({ items = defaultItems }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === '/';
 
   const lockScroll = useCallback(() => {
     try {
@@ -64,7 +66,7 @@ export default function MenuOverlay({ items = defaultItems }) {
       {createPortal(
         <>
           <button
-            className={`mo-toggle ${open ? 'is-open' : ''}`}
+            className={`mo-toggle ${open ? 'is-open' : ''} ${!isHome ? 'variant-fab' : ''} ${isHome && open ? 'variant-fab-open' : ''}`}
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
             onClick={() => setOpen(o => !o)}
@@ -108,16 +110,16 @@ export default function MenuOverlay({ items = defaultItems }) {
             </div>
           </aside>
           <style>{`
-            .mo-toggle { position: fixed; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); z-index: 2200; appearance: none; border: none; background: transparent; color: #e9e9ef; border-radius: 56px; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+            .mo-toggle { position: fixed; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); z-index: 2200; appearance: none; border: none; background: transparent; color: #e9e9ef; border-radius: 56px; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; transition: transform .66s cubic-bezier(0.22,1,0.36,1), width .5s cubic-bezier(0.22,1,0.36,1), height .5s cubic-bezier(0.22,1,0.36,1), border-radius .5s cubic-bezier(0.22,1,0.36,1), box-shadow .5s ease; }
             .mo-toggle .mo-toggle-inner { position: relative; z-index: 2; display: inline-flex; align-items: center; justify-content: center; gap: 0.7rem; padding: 18px 40px; font-weight: 700; letter-spacing: .02em; font-size: 18px; }
             .mo-label-wrap { position: relative; height: 1.1em; overflow: hidden; display: inline-grid; align-items: center; justify-items: center; min-width: 64px; }
-            .mo-label-line { display: block; grid-area: 1 / 1; line-height: 1.1; will-change: transform, opacity; transition: transform .3s cubic-bezier(0.22,1,0.36,1), opacity .25s ease; }
+            .mo-label-line { display: block; grid-area: 1 / 1; line-height: 1.1; will-change: transform, opacity; transition: transform .5s cubic-bezier(0.22,1,0.36,1), opacity .38s ease; }
             .mo-label-line.menu { opacity: 1; transform: translateY(0); }
             .mo-label-line.close { opacity: 0; transform: translateY(6px); }
             .mo-toggle.is-open .mo-label-line.menu { opacity: 0; transform: translateY(-6px); }
             .mo-toggle.is-open .mo-label-line.close { opacity: 1; transform: translateY(0); }
             .mo-toggle .mo-icon { position: relative; width: 18px; height: 18px; display: inline-flex; }
-            .mo-toggle .mo-line { position: absolute; left: 50%; top: 50%; width: 100%; height: 2.5px; background: currentColor; border-radius: 2px; transform: translate(-50%, -50%) rotate(0deg); transition: transform .3s cubic-bezier(0.4,0,0.2,1); }
+            .mo-toggle .mo-line { position: absolute; left: 50%; top: 50%; width: 100%; height: 2.5px; background: currentColor; border-radius: 2px; transform: translate(-50%, -50%) rotate(0deg); transition: transform .56s cubic-bezier(0.22,1,0.36,1); }
             .mo-toggle .mo-line.v { transform: translate(-50%, -50%) rotate(90deg); }
             .mo-toggle.is-open .mo-line.h { transform: translate(-50%, -50%) rotate(45deg); }
             .mo-toggle.is-open .mo-line.v { transform: translate(-50%, -50%) rotate(-45deg); }
@@ -164,6 +166,34 @@ export default function MenuOverlay({ items = defaultItems }) {
               .mo-panel.is-open { transition: none; }
               .mo-itemWrap, .mo-panel.is-open .mo-itemWrap { animation: none !important; opacity: 1 !important; transform: none !important; }
               .mo-vfx, .mo-panel.is-open .mo-vfx { animation: none !important; opacity: 0 !important; }
+            }
+
+            /* Mobile FAB variant (non-Home always FAB, Home becomes FAB when open) */
+            @media (max-width: 640px) {
+              /* Compute rightward translation from center to bottom-right, including half FAB size */
+              .mo-toggle { bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+              .mo-toggle.variant-fab,
+              .mo-toggle.variant-fab-open { --fabHalf: 32px; transform: translateX(calc(50vw - (16px + env(safe-area-inset-right, 0px)) - 50% - var(--fabHalf))); width: 64px; height: 64px; border-radius: 50%; }
+              .mo-toggle.variant-fab .mo-toggle-inner,
+              .mo-toggle.variant-fab-open .mo-toggle-inner { padding: 0; width: 100%; height: 100%; }
+              .mo-toggle.variant-fab .mo-label-wrap,
+              .mo-toggle.variant-fab-open .mo-label-wrap { display: none; }
+              .mo-toggle.variant-fab .mo-icon,
+              .mo-toggle.variant-fab-open .mo-icon { width: 24px; height: 24px; }
+              .mo-toggle.variant-fab .mo-bg,
+              .mo-toggle.variant-fab .mo-glow,
+              .mo-toggle.variant-fab .mo-shimmer,
+              .mo-toggle.variant-fab .mo-ripple,
+              .mo-toggle.variant-fab-open .mo-bg,
+              .mo-toggle.variant-fab-open .mo-glow,
+              .mo-toggle.variant-fab-open .mo-shimmer,
+              .mo-toggle.variant-fab-open .mo-ripple { border-radius: 50%; }
+              .mo-toggle.variant-fab:hover .mo-shimmer,
+              .mo-toggle.variant-fab-open:hover .mo-shimmer { opacity: 0.65; }
+              .mo-toggle.variant-fab:active .mo-toggle-inner,
+              .mo-toggle.variant-fab-open:active .mo-toggle-inner { transform: translateY(0.5px) scale(0.99); }
+              .mo-toggle.variant-fab.is-open,
+              .mo-toggle.variant-fab-open.is-open { --fabHalf: 34px; width: 68px; height: 68px; transform: translateX(calc(50vw - (16px + env(safe-area-inset-right, 0px)) - 50% - var(--fabHalf))); }
             }
           `}</style>
         </>,

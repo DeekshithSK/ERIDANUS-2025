@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react'
+import React, { useLayoutEffect, useRef, useMemo } from 'react'
 import { gsap } from 'gsap'
 
 export default function About() {
@@ -19,36 +19,17 @@ export default function About() {
     return () => ctx.revert()
   }, [])
 
-  const partners = [
-    {
-      title: 'International Knowledge Partners',
-      items: [
-        { label: 'Partner 1', src: '' },
-        { label: 'Partner 2', src: '' },
-        { label: 'Partner 3', src: '' },
-        { label: 'Partner 4', src: '' },
-      ],
-    },
-    {
-      title: 'Academic Partners',
-      items: [
-        { label: 'Partner 1', src: '' },
-        { label: 'Partner 2', src: '' },
-        { label: 'Partner 3', src: '' },
-        { label: 'Partner 4', src: '' },
-        { label: 'Partner 5', src: '' },
-      ],
-    },
-    {
-      title: 'Media and Streaming Partners',
-      items: [
-        { label: 'Partner 1', src: '' },
-        { label: 'Partner 2', src: '' },
-        { label: 'Partner 3', src: '' },
-        { label: 'Partner 4', src: '' },
-      ],
-    },
-  ]
+  // Import all partner logo assets from src/partners (supports multiple extensions and cases)
+  const partnerLogos = useMemo(() => {
+    const modules = import.meta.glob('../partners/**/*.{png,jpg,jpeg,svg,webp,PNG,JPG,JPEG,SVG,WEBP}', { eager: true, import: 'default' })
+    const urls = Object.values(modules).filter(Boolean)
+    // Stable order by URL so deploys are deterministic
+    urls.sort((a, b) => String(a).localeCompare(String(b)))
+    return urls
+  }, [])
+
+  // Single unified partners list
+  const partners = useMemo(() => partnerLogos.map((src, i) => ({ label: `Partner ${i + 1}`, src })), [partnerLogos])
 
   return (
     <main className="hero hero-min" aria-label="About ERIDANUS 2025">
@@ -60,22 +41,18 @@ export default function About() {
 
         {/* Partners Section */}
         <section ref={partnersRef} className="partners" aria-label="Partners">
-          {partners.map((group, gi) => (
-            <div className="partner-group" key={group.title + gi}>
-              <h2 className="partner-title">{group.title}</h2>
-              <div className="logos" role="list">
-                {group.items.map((it, idx) => (
-                  <div className="logo-card" role="listitem" key={group.title + idx}>
-                    {it.src ? (
-                      <img src={it.src} alt={it.label || 'Partner logo'} loading="lazy" />
-                    ) : (
-                      <div className="logo-fallback" aria-hidden="true">{it.label || 'Logo'}</div>
-                    )}
-                  </div>
-                ))}
-              </div>
+          <div className="partner-group">
+            <h2 className="partner-title">Partners</h2>
+            <div className="logos" role="list">
+              {partners.map((it, idx) => (
+                it.src ? (
+                  <img className="partner-logo" role="listitem" key={(it.src || 'partner') + idx} src={it.src} alt={it.label || 'Partner logo'} loading="lazy" />
+                ) : (
+                  <span className="logo-fallback" role="listitem" key={'partner-fallback-' + idx} aria-hidden="true">{it.label || 'Logo'}</span>
+                )
+              ))}
             </div>
-          ))}
+          </div>
         </section>
 
         <style>{`
@@ -85,14 +62,10 @@ export default function About() {
 
           .partners { margin: clamp(22px, 5vw, 40px) auto 0; display: grid; gap: clamp(18px, 4vw, 28px); }
           .partner-group { background: rgba(10,12,18,0.35); border: 1px solid rgba(107,193,255,0.22); border-radius: 16px; padding: clamp(14px, 3.6vw, 22px); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 10px 30px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.04); }
-          .partner-title { margin: 0 0 12px; color: #eaf5ff; font-weight: 800; letter-spacing: .01em; font-size: clamp(1.05rem, 2.8vw, 1.25rem); }
-          .logos { display: grid; grid-template-columns: repeat(12, 1fr); gap: 12px; align-items: center; }
-          .logo-card { grid-column: span 6; height: 84px; display: grid; place-items: center; border-radius: 12px; background: rgba(14,18,28,0.55); border: 1px solid rgba(107,193,255,0.18); overflow: hidden; }
-          .logo-card img { max-height: 80%; max-width: 90%; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
-          .logo-fallback { font-size: .95rem; color: #b9dfff; opacity: .9; font-weight: 700; letter-spacing: .01em; }
-          @media (min-width: 720px) {
-            .logo-card { grid-column: span 3; height: 96px; }
-          }
+          .partner-title { margin: 0 0 14px; color: #eaf5ff; font-weight: 800; letter-spacing: .01em; font-size: clamp(1.05rem, 2.8vw, 1.25rem); text-align: center; }
+          .logos { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; align-items: center; justify-items: center; }
+          .partner-logo { max-width: 90%; max-height: 96px; width: auto; height: auto; object-fit: contain; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3)); }
+          .logo-fallback { display: inline-grid; place-items: center; min-height: 64px; padding: 10px 12px; font-size: .95rem; color: #b9dfff; opacity: .9; font-weight: 700; letter-spacing: .01em; border: 1px dashed rgba(107,193,255,0.3); border-radius: 10px; }
           @media (max-width: 640px) { .about-overlay { padding: 14px 10px; } }
         `}</style>
       </section>
