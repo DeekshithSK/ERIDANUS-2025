@@ -216,36 +216,18 @@ export default function Galaxy({
 
     let program;
 
-    function getViewportSize() {
-      try {
-        const vv = window.visualViewport;
-        if (vv) {
-          return { w: Math.ceil(vv.width), h: Math.ceil(vv.height) };
-        }
-      } catch {}
-      return { w: Math.ceil(window.innerWidth), h: Math.ceil(window.innerHeight) };
-    }
-
     function resize() {
-      const { w, h } = getViewportSize();
       const scale = 1;
-      renderer.setSize(w * scale, h * scale);
+      renderer.setSize(ctn.offsetWidth * scale, ctn.offsetHeight * scale);
       if (program) {
-        program.uniforms.uResolution.value = new Color(gl.canvas.width, gl.canvas.height, gl.canvas.width / gl.canvas.height);
+        program.uniforms.uResolution.value = new Color(
+          gl.canvas.width,
+          gl.canvas.height,
+          gl.canvas.width / gl.canvas.height
+        );
       }
     }
     window.addEventListener('resize', resize, false);
-    try { window.visualViewport?.addEventListener('resize', resize, { passive: true }); } catch {}
-    // Some mobile browsers don't fire resize on URL bar show/hide; update on scroll as a fallback
-    let scrollRAF = 0;
-    function onScroll() {
-      if (scrollRAF) return;
-      scrollRAF = requestAnimationFrame(() => {
-        scrollRAF = 0;
-        resize();
-      });
-    }
-    window.addEventListener('scroll', onScroll, { passive: true });
     resize();
 
     const geometry = new Triangle(gl);
@@ -325,9 +307,7 @@ export default function Galaxy({
 
     return () => {
       cancelAnimationFrame(animateId);
-  window.removeEventListener('resize', resize);
-  try { window.visualViewport?.removeEventListener('resize', resize); } catch {}
-  window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', resize);
       if (mouseInteraction) {
         ctn.removeEventListener('mousemove', handleMouseMove);
         ctn.removeEventListener('mouseleave', handleMouseLeave);

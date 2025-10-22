@@ -54,6 +54,10 @@ body {
 .galaxy-wrap > div { position: absolute; inset: 0; }
 .galaxy-wrap > div,
 .galaxy-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+/* Slight overscan to avoid edge gaps on small viewport changes */
+.galaxy-wrap canvas { will-change: transform; transform-origin: center; }
+@media (max-width: 640px) { .galaxy-wrap canvas { transform: scale(1.08); } }
+@media (min-width: 641px) { .galaxy-wrap canvas { transform: scale(1.02); } }
 /* Avoid transform on ancestors affecting fixed positioning; ensure no transform on body/app root */
 body, .app-root { transform: none !important; }
 

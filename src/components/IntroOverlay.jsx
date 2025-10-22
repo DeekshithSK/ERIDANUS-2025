@@ -39,20 +39,7 @@ export default function IntroOverlay({ onDone }) {
     <div style={{ position:'fixed', inset:0, zIndex:9999, backgroundColor:'#0a0c12', overflow:'hidden', WebkitTapHighlightColor:'transparent' }}>
       {/* Safe-area top filler to avoid any notch/status-bar seam */}
       <div aria-hidden style={{ position:'absolute', top:0, left:0, right:0, height:'env(safe-area-inset-top, 0px)', background:'#0a0c12', pointerEvents:'none' }} />
-      {/* Galaxy background */}
-      <div style={{ position:'absolute', top:'-1px', left:'-1px', right:'-1px', bottom:'-1px' }} aria-hidden>
-        <Galaxy 
-          mouseRepulsion={false}
-          mouseInteraction={false}
-          density={0.6}
-          glowIntensity={0.55}
-          saturation={0.0}
-          hueShift={0}
-          rotationSpeed={0.06}
-          twinkleIntensity={0.35}
-          transparent={false}
-        />
-      </div>
+      {/* Background intentionally plain during intro (no galaxy) */}
       {/* Centered animated headline */}
       <div style={{ position:'relative', display:'grid', placeItems:'center', height:'100%', padding:'0 12px' }}>
         {isMobile ? (
