@@ -149,9 +149,9 @@ export default function MenuOverlay({ items = defaultItems }) {
               .mo-toggle.is-open .mo-glow { animation: none !important; }
               .mo-label-line { transition: none !important; }
             }
-            .mo-panel { position: fixed; inset: 0; width: 100vw; min-height: 100vh; height: 100vh; height: 100svh; height: 100lvh; height: 100dvh; background: rgba(10,12,18,0.9); color: #fff; z-index: 2100; visibility: hidden; opacity: 0; pointer-events: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: opacity .28s ease; overflow-y: auto; clip-path: circle(0% at 50% 50%); }
+            .mo-panel { position: fixed; inset: 0; width: 100vw; min-height: 100vh; height: 100dvh; background: rgba(10,12,18,0.9); color: #fff; z-index: 2100; visibility: hidden; opacity: 0; pointer-events: none; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: opacity .28s ease; overflow-y: auto; clip-path: circle(0% at 50% 50%); }
             .mo-panel.is-open { visibility: visible; opacity: 1; pointer-events: auto; clip-path: circle(150% at 50% 50%); transition: opacity .28s ease, clip-path .6s cubic-bezier(0.22, 1, 0.36, 1); }
-            .mo-panel-inner { min-height: 100%; padding: 5.5em 1.25em 1.5em 1.25em; display: flex; flex-direction: column; gap: 1.25rem; }
+            .mo-panel-inner { min-height: 100%; padding: 5.5em 1.25em calc(6.5rem + env(safe-area-inset-bottom, 0px)) 1.25em; display: flex; flex-direction: column; gap: 1.25rem; }
             .mo-vfx { position: fixed; left: 50%; top: 50%; width: 60vmin; height: 60vmin; transform: translate(-50%, -50%) scale(0.9); border-radius: 50%; pointer-events: none; opacity: 0; background: radial-gradient(closest-side, rgba(118,143,255,0.3), rgba(118,143,255,0) 65%); filter: blur(1px); }
             .mo-panel.is-open .mo-vfx { animation: moBurst 600ms ease-out forwards; }
             .mo-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1rem; }

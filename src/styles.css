@@ -11,6 +11,11 @@
 * { box-sizing: border-box; }
 /* Allow document to grow and scroll naturally; avoid height locking */
 html, body, #root { min-height: 100%; height: auto; }
+/* Prefer dynamic viewport height on browsers that support it to avoid bottom gaps
+   when browser UI hides/shows (mobile address bar). Fallback remains 100%. */
+@supports (height: 100dvh) {
+  html, body, #root { min-height: 100dvh; }
+}
 /* Prevent overscroll bounce/extra blank space; let Lenis handle smoothness */
 html { overscroll-behavior-y: none; overscroll-behavior-x: none; }
 body { overscroll-behavior-y: none; overscroll-behavior-x: none; overflow-x: hidden; overflow-y: auto; touch-action: auto; -webkit-overflow-scrolling: touch; }
@@ -49,6 +54,8 @@ body {
 .galaxy-wrap > div { position: absolute; inset: 0; }
 .galaxy-wrap > div,
 .galaxy-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+/* Avoid transform on ancestors affecting fixed positioning; ensure no transform on body/app root */
+body, .app-root { transform: none !important; }
 
 /* Top nav */
 .nav {
