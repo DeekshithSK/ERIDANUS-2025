@@ -27,7 +27,7 @@ export default function Home({ playHeroAnim = false }) {
   // Days until registration closes (auto-updating)
   const [daysLeft, setDaysLeft] = useState(() => {
     const now = new Date();
-    const close = new Date(2025, 9, 30, 23, 59, 59); // Oct is month 9 (0-indexed)
+    const close = new Date(2025, 10, 3, 23, 59, 59); // Nov 3, 2025 (month 10)
     const diff = Math.ceil((close.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
     return Math.max(0, diff);
   });
@@ -36,7 +36,7 @@ export default function Home({ playHeroAnim = false }) {
     // Update roughly every hour to keep the countdown fresh without excess work
     const interval = setInterval(() => {
       const now = new Date();
-      const close = new Date(2025, 9, 30, 23, 59, 59);
+      const close = new Date(2025, 10, 3, 23, 59, 59);
       const diff = Math.ceil((close.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
       setDaysLeft(Math.max(0, diff));
     }, 60 * 60 * 1000);
@@ -179,15 +179,12 @@ export default function Home({ playHeroAnim = false }) {
           {/* If you prefer a range style like the reference: replace the date above with:
               October 7 – October 8, 2025 */}
         </div>
-        {/* Minimal stats below date/time */}
+        {/* Minimal stats below date/time - only registration countdown */}
         <section className="stats" role="group" aria-label="Event stats">
-          <div className="stat">
-            <div className="stat-value"><CountUp to={100} duration={1.2} /></div>
-            <div className="stat-label">Participants Confirmed</div>
-          </div>
           <div className="stat">
             <div className="stat-value"><CountUp to={daysLeft} duration={0.8} /></div>
             <div className="stat-label">Days Until Registration Closes</div>
+            <div className="stat-sub">Registration closes on November 3, 2025</div>
           </div>
         </section>
 
@@ -293,9 +290,10 @@ export default function Home({ playHeroAnim = false }) {
           .event-time-small { margin-top: 0.15rem; font-size: clamp(1rem, 3.2vw, 1.25rem); color: #cfd3ff; font-weight: 600; }
           @media (max-width: 640px) { .event-datetime { margin-top: 1.2rem; } }
           /* Minimal stats grid */
-          .stats { margin: 0.6rem auto 0; width: 100%; max-width: 1000px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(10px, 2.2vw, 22px); align-items: start; text-align: center; }
+          .stats { margin: 0.6rem auto 0; width: 100%; max-width: 1000px; display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: clamp(10px, 2.2vw, 22px); align-items: start; text-align: center; }
           .stat-value { font-size: clamp(1.6rem, 6.5vw, 2.8rem); font-weight: 800; color: #fff; letter-spacing: -0.01em; }
           .stat-label { margin-top: 4px; font-size: clamp(0.8rem, 2.4vw, 0.95rem); text-transform: none; letter-spacing: 0.04em; color: #a8b4ff; }
+          .stat-sub { margin-top: 6px; font-size: 0.95rem; color: #cfd3ff; }
           /* Center the overlay content and card on small screens */
           .home-overlay { max-width: 1200px; width: 100%; margin: 0 auto; padding-left: 16px; padding-right: 16px; display: block; }
           .desc-wrap { max-width: 1000px; margin: 0 auto; padding: 0 0 10vh; }
@@ -349,7 +347,7 @@ export default function Home({ playHeroAnim = false }) {
             .home-overlay { display: flex; flex-direction: column; align-items: center; text-align: center; padding-left: calc(16px + env(safe-area-inset-left, 0px)); padding-right: calc(16px + env(safe-area-inset-right, 0px)); }
             .desc-wrap { padding-left: 14px; padding-right: 14px; padding-bottom: calc(18vh + env(safe-area-inset-bottom, 0px)); }
             .event-datetime { width: 100%; max-width: 680px; }
-            .stats { grid-template-columns: 1fr 1fr; }
+            .stats { grid-template-columns: 1fr; }
           }
           /* Force scroll before description appears */
           .home-spacer { height: 18vh; }
