@@ -76,7 +76,7 @@ export default function App() {
           <Galaxy
             mouseRepulsion={false}
             mouseInteraction={false}
-            density={0.5}
+            density={0.29}
          glowIntensity={1}
             saturation={0.85}
             hueShift={120}
