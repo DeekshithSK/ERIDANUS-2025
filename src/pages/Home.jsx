@@ -176,17 +176,20 @@ export default function Home({ playHeroAnim = false }) {
         <div className="event-datetime" role="group" aria-label="Event schedule">
           <div ref={dateRef} className="event-date-large">November 4, 2025</div>
           <div ref={timeRef} className="event-time-small">9:00 AM – 4:30 PM</div>
+          <div className="event-actions">
+            <a
+              href="/winners"
+              onClick={(e) => { e.preventDefault(); navigate('/winners'); }}
+              className="btn-winners"
+              aria-label="View winners page"
+            >
+              Winners
+            </a>
+          </div>
           {/* If you prefer a range style like the reference: replace the date above with:
               October 7 – October 8, 2025 */}
         </div>
-        {/* Minimal stats below date/time - only registration countdown */}
-        <section className="stats" role="group" aria-label="Event stats">
-          <div className="stat">
-            <div className="stat-value"><CountUp to={daysLeft} duration={0.8} /></div>
-            <div className="stat-label">Days Until Registration Closes</div>
-            <div className="stat-sub">Registration closes on November 3, 2025</div>
-          </div>
-        </section>
+        {/* Stats removed per request */}
 
         {/* Large spacer to force scroll before cards */}
         <div className="home-spacer" aria-hidden></div>
@@ -285,15 +288,16 @@ export default function Home({ playHeroAnim = false }) {
             .org-line { margin-top: 22px; font-size: clamp(0.95rem, 3.4vw, 1.1rem); transform: translateY(0); max-width: 90%; margin-left: auto; margin-right: auto; line-height: 1.35; }
           }
           /* Minimal date/time styles */
-          .event-datetime { margin: 1.25rem auto 0; text-align: center; width: 100%; max-width: 1000px; animation: fadeUp 650ms ease-out both; }
+          .event-datetime { margin: 1.25rem auto 2.75rem; text-align: center; width: 100%; max-width: 1000px; animation: fadeUp 650ms ease-out both; }
           .event-date-large { font-size: clamp(1.6rem, 6.2vw, 3.2rem); font-weight: 700; color: #fff; letter-spacing: -0.01em; --dateGlow: 0.25; text-shadow: 0 4px 24px rgba(118,143,255,var(--dateGlow)); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
           .event-time-small { margin-top: 0.15rem; font-size: clamp(1rem, 3.2vw, 1.25rem); color: #cfd3ff; font-weight: 600; }
-          @media (max-width: 640px) { .event-datetime { margin-top: 1.2rem; } }
+          .event-actions { margin-top: 38px; display: flex; justify-content: center; gap: 12px; }
+          .btn-winners { display: inline-flex; align-items: center; gap: .6rem; padding: .8rem 1.2rem; border-radius: 14px; background: linear-gradient(92deg, #bfe7ff, #6bc1ff); color: #08101a; font-weight: 900; font-size: 1.05rem; text-decoration: none; border: 1px solid rgba(255,255,255,0.12); box-shadow: 0 10px 36px rgba(107,193,255,0.18), inset 0 1px 0 rgba(255,255,255,0.6); transition: transform .18s ease, box-shadow .18s ease, filter .18s ease; }
+          .btn-winners:hover, .btn-winners:focus { transform: translateY(-3px) scale(1.01); box-shadow: 0 16px 48px rgba(107,193,255,0.32), inset 0 1px 0 rgba(255,255,255,0.65); filter: saturate(1.07); outline: none; }
+          @media (max-width: 640px) { .event-actions { margin-top: 3.5rem; } .btn-winners { padding: .9rem 1.4rem; font-size: 1.02rem; border-radius: 13px; } }
+          @media (max-width: 640px) { .event-datetime { margin-top: 1.2rem; margin-bottom: 3.5rem; } }
           /* Minimal stats grid */
-          .stats { margin: 0.6rem auto 0; width: 100%; max-width: 1000px; display: grid; grid-template-columns: repeat(1, minmax(0, 1fr)); gap: clamp(10px, 2.2vw, 22px); align-items: start; text-align: center; }
-          .stat-value { font-size: clamp(1.6rem, 6.5vw, 2.8rem); font-weight: 800; color: #fff; letter-spacing: -0.01em; }
-          .stat-label { margin-top: 4px; font-size: clamp(0.8rem, 2.4vw, 0.95rem); text-transform: none; letter-spacing: 0.04em; color: #a8b4ff; }
-          .stat-sub { margin-top: 6px; font-size: 0.95rem; color: #cfd3ff; }
+          /* stats removed */
           /* Center the overlay content and card on small screens */
           .home-overlay { max-width: 1200px; width: 100%; margin: 0 auto; padding-left: 16px; padding-right: 16px; display: block; }
           .desc-wrap { max-width: 1000px; margin: 0 auto; padding: 0 0 10vh; }
@@ -347,7 +351,6 @@ export default function Home({ playHeroAnim = false }) {
             .home-overlay { display: flex; flex-direction: column; align-items: center; text-align: center; padding-left: calc(16px + env(safe-area-inset-left, 0px)); padding-right: calc(16px + env(safe-area-inset-right, 0px)); }
             .desc-wrap { padding-left: 14px; padding-right: 14px; padding-bottom: calc(18vh + env(safe-area-inset-bottom, 0px)); }
             .event-datetime { width: 100%; max-width: 680px; }
-            .stats { grid-template-columns: 1fr; }
           }
           /* Force scroll before description appears */
           .home-spacer { height: 18vh; }

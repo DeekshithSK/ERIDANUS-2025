@@ -8,6 +8,7 @@ import Events from './pages/Events.jsx'
 import Venue from './pages/Venue.jsx'
 import Resources from './pages/Resources.jsx'
 import Contact from './pages/Contact.jsx'
+import Winners from './pages/Winners.jsx'
 import IntroOverlay from './components/IntroOverlay.jsx'
 import MenuOverlay from './components/MenuOverlay.jsx'
 import Galaxy from './components/Galaxy.jsx'
@@ -101,6 +102,7 @@ export default function App() {
             <Route path="/venue" element={<Venue />} />
             <Route path="/resources" element={<Resources />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/winners" element={<Winners />} />
           </Routes>
         </div>
       ) : (

@@ -7,6 +7,7 @@ const defaultItems = [
   { label: 'About', link: '/about' },
   { label: 'Program', link: '/program' },
   { label: 'Events', link: '/events' },
+  { label: 'Winners', link: '/winners' },
   { label: 'Venue', link: '/venue' },
   { label: 'Resources', link: '/resources' },
   { label: 'Contact', link: '/contact' },
