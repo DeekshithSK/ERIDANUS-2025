@@ -40,20 +40,7 @@ export default function About() {
         </p>
 
         {/* Partners Section */}
-        <section ref={partnersRef} className="partners" aria-label="Partners">
-          <div className="partner-group">
-            <h2 className="partner-title">Partners</h2>
-            <div className="logos" role="list">
-              {partners.map((it, idx) => (
-                it.src ? (
-                  <img className="partner-logo" role="listitem" key={(it.src || 'partner') + idx} src={it.src} alt={it.label || 'Partner logo'} loading="lazy" />
-                ) : (
-                  <span className="logo-fallback" role="listitem" key={'partner-fallback-' + idx} aria-hidden="true">{it.label || 'Logo'}</span>
-                )
-              ))}
-            </div>
-          </div>
-        </section>
+
 
         <style>{`
           .about-overlay { max-width: 1100px; margin: 0 auto; text-align: left; }
