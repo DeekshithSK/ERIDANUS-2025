@@ -1,8 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import imgInPerson from '../../in person abstract presentation.jpg'
-import imgOnline from '../../online abstract presentation.jpg'
-import imgPoster from '../../poster presentation.jpg'
+import imgAngetenar from '../winners/Angetenar(PosterPresentation)Winners Lubna Ayisha & Pratham Gowda.jpeg'
+import imgZaurakBeid from '../winners/Zaurak & Beid Winner Shannel Dsouza.jpeg'
 
 export default function Winners() {
   const navigate = useNavigate()
@@ -11,21 +10,20 @@ export default function Winners() {
       <div className="winners-inner">
         <header>
           <h1 id="winners-heading">Winners</h1>
-          <p className="winners-sub">Results will be posted here once announced.</p>
+          <p className="winners-sub">Congratulations to our winners!</p>
         </header>
 
         <section className="winners-grid">
           {[
-            { key: 'angetenar', title: 'Angetenar', image: imgPoster },
-            { key: 'zaurak', title: 'Zaurak', image: imgOnline },
-            { key: 'beid', title: 'Beid', image: imgInPerson }
+            { key: 'angetenar', title: 'Angetenar (Poster Presentation)', image: imgAngetenar, winners: 'Lubna Ayisha & Pratham Gowda' },
+            { key: 'zaurak-beid', title: 'Zaurak & Beid', image: imgZaurakBeid, winners: 'Shannel Dsouza' }
           ].map((c) => (
             <article key={c.key} className="winner-card">
               <figure className="winner-hero">
-                <img src={c.image} alt={`${c.title} banner`} loading="lazy" />
+                <img src={c.image} alt={`${c.title} winners`} loading="lazy" />
               </figure>
               <h2 className="winner-title">{c.title}</h2>
-              <p className="winner-status">Winners yet to be announced</p>
+              <p className="winner-status">Winners: {c.winners}</p>
               <div className="winner-actions">
                 <button className="btn-primary" onClick={() => navigate('/events')}>View event</button>
               </div>
@@ -40,16 +38,16 @@ export default function Winners() {
           .winners-grid { display: grid; grid-template-columns: 1fr; gap: 0.75rem; }
           .winner-card { background: linear-gradient(180deg, rgba(13,17,26,0.65), rgba(13,17,26,0.45)); border: 1px solid rgba(107,193,255,0.18); border-radius: 12px; padding: 0.75rem; display: flex; flex-direction: column; gap: .5rem; }
           .winner-hero { margin: 0; border-radius: 10px; overflow: hidden; }
-          .winner-hero img { display: block; width: 100%; height: 120px; object-fit: cover; object-position: center; }
+          .winner-hero img { display: block; width: 100%; height: 200px; object-fit: cover; object-position: center; }
           .winner-title { margin: 0; font-size: 1rem; font-weight: 800; }
           .winner-status { margin: 0; color: #c9d9ff; opacity: 0.95; font-size: 0.95rem; }
           .winner-actions { display: flex; gap: .45rem; }
           .btn-primary { background: linear-gradient(92deg, #bfe7ff, #6bc1ff); color: #071018; border: none; padding: .45rem .7rem; border-radius: 9px; font-weight: 800; cursor: pointer; font-size: 0.95rem; }
 
           @media (min-width: 720px) {
-            .winners-grid { grid-template-columns: repeat(3, 1fr); }
+            .winners-grid { grid-template-columns: repeat(2, 1fr); }
             .winner-card { padding: 0.9rem; }
-            .winner-hero img { height: 140px; }
+            .winner-hero img { height: 280px; }
           }
         `}</style>
       </div>
